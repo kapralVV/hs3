@@ -12,16 +12,34 @@ import Data.IxSet (IxSet, empty)
 
 import Types.FileSystem
 
-data AcidDB = AcidDB { buckets :: ([BucketId], IxSet Bucket)
-                     , objects :: ([ObjectId], IxSet Object)
-                     , files   :: ([FileId], IxSet FileData)
+data DbIndexInfo a = DbIndexInfo { maxIndex :: a
+                                 , holes :: [a]
+                                 }
+                   deriving (Show, Eq, Ord, Data, Typeable)
+$(deriveSafeCopy 0 'base ''DbIndexInfo)
+
+data AcidDB = AcidDB { buckets :: (DbIndexInfo BucketId, IxSet Bucket)
+                     , objects :: (DbIndexInfo ObjectId, IxSet Object)
+                     , files   :: (DbIndexInfo FileId, IxSet FileData)
                      }
             deriving (Show, Generic, Typeable, Data)
 $(deriveSafeCopy 0 'base ''AcidDB)
 
 
 initAcidDB :: AcidDB
-initAcidDB = AcidDB { buckets = ([BucketId 0], empty)
-                    , objects = ([ObjectId 0], empty)
-                    , files   = ([FileId 0], empty)
+initAcidDB = AcidDB { buckets = (DbIndexInfo { maxIndex = BucketId 0
+                                             , holes = []
+                                             }
+                                , empty
+                                )
+                    , objects = (DbIndexInfo { maxIndex = ObjectId 0
+                                             , holes = []
+                                             }
+                                , empty
+                                )
+                    , files   = (DbIndexInfo { maxIndex = FileId 0
+                                             , holes = []
+                                             }
+                                , empty
+                                )
                     }
