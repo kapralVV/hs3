@@ -51,20 +51,20 @@ initAcidDB = AcidDB { buckets = (DbIndexInfo { maxIndex = BucketId 0
 haveHoles :: DbIndexInfo a -> Bool
 haveHoles = not . null . holes
 
-getMaxIndexE :: Enum r => DbIndexInfo r -> Either r r
-getMaxIndexE dbIndexInfo | haveHoles dbIndexInfo = Left . head $ holes dbIndexInfo
-                         | otherwise = Right . succ $ maxIndex dbIndexInfo
+getIndexE :: Enum r => DbIndexInfo r -> Either r r
+getIndexE dbIndexInfo | haveHoles dbIndexInfo = Left . head $ holes dbIndexInfo
+                      | otherwise = Right . succ $ maxIndex dbIndexInfo
 
 getMaxIndex :: Enum r => DbIndexInfo r -> r
-getMaxIndex = either id id . getMaxIndexE
+getMaxIndex = either id id . getIndexE
 
 updateIndexInfoE :: Enum r => DbIndexInfo r -> Either r r -> DbIndexInfo r
-updateIndexInfoE dbIndexInfo (Left maxIndex_) =  DbIndexInfo { maxIndex = maxIndex_
-                                                             , holes = drop 1 $ holes dbIndexInfo
-                                                             }
+updateIndexInfoE dbIndexInfo (Left _) =  DbIndexInfo { maxIndex = maxIndex dbIndexInfo
+                                                     , holes = drop 1 $ holes dbIndexInfo
+                                                     }
 updateIndexInfoE dbIndexInfo (Right maxIndex_) = DbIndexInfo { maxIndex = maxIndex_
                                                              , holes = holes dbIndexInfo
                                                              }
 
 updateIndexInfo :: Enum r => DbIndexInfo r -> DbIndexInfo r
-updateIndexInfo = liftA2 ($) updateIndexInfoE getMaxIndexE
+updateIndexInfo = liftA2 ($) updateIndexInfoE getIndexE

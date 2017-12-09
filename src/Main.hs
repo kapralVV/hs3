@@ -2,9 +2,13 @@ import Types.FileSystem
 import Tests.ArbitraryInstances ()
 import Data.Aeson.Encode.Pretty
 import Test.QuickCheck
-import Data.ByteString.Lazy
+import qualified Data.ByteString.Lazy as DBL
 import Types.AcidDB
 import Storage.AcidDB
+import Data.Acid
+import Data.Acid.Advanced
+import Other.IxSetAeson
+
 
 main :: IO ()
-main = (generate $ arbitrary :: IO Object) >>= Data.ByteString.Lazy.putStr . encodePretty
+main = (generate $ arbitrary :: IO Object) >>= DBL.putStr . encodePretty

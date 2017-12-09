@@ -19,8 +19,8 @@ instance ToJSON ErrorMessage
 instance FromJSON ErrorMessage
 $(deriveSafeCopy 0 'base ''ErrorMessage)
 
-data Status a = Done   { done :: a }
-              | Failed { error :: ErrorMessage }
+data Status a = Done a
+              | Failed ErrorMessage
               deriving (Show, Generic, Typeable, Data)
 instance (ToJSON a) => ToJSON (Status a)
 instance (FromJSON a) => FromJSON (Status a)
