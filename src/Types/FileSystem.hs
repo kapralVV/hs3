@@ -23,8 +23,6 @@ import Data.Text
 
 import Data.ByteString.Lazy
 import Data.Time.Clock
--- import Data.Digest.Pure.MD5
--- import Test.QuickCheck
 
 
 
@@ -89,7 +87,8 @@ $(deriveSafeCopy 0 'base ''ObjectType)
 
 data FileData = FileData { fileId :: FileId
                          , fileData :: ByteString
---                         , fileMd5sum :: MD5Digest
+                         , ownedbyObjects :: DS.Set ObjectId
+                         , fileMd5sum :: String
                          } deriving (Show, Eq, Ord, Data, Typeable)
 instance IX.Indexable FileData where
   empty = IX.ixSet
@@ -109,7 +108,6 @@ instance A.FromJSON BucketName
 $(deriveSafeCopy 0 'base ''BucketName)
 
 ---------------- Bucket  ------------------
-
 
 data Bucket = Bucket { bucketId :: BucketId
                      , bucketName :: BucketName

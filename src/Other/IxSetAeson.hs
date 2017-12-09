@@ -9,3 +9,4 @@ instance (FromJSON a, Ord a, Typeable a, IX.Indexable a) => FromJSON (IX.IxSet a
 
 instance (ToJSON a, Ord a) => ToJSON (IX.IxSet a) where
   toJSON = toJSON . IX.toList
+

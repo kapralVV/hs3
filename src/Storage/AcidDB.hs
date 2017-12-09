@@ -9,8 +9,16 @@ import Data.Acid
 import Types.AcidDB
 
 import Storage.Bucket
+import Storage.FileData
 
 makeAcidic ''AcidDB [ 'createBucket
                     , 'queryBucketByName
                     , 'queryBucketById
+                    , 'createFileData
+                    , 'deleteFileData
+                    , 'queryAllFiles
+                    , 'queryFile
+                    , 'queryFileData
+                    , 'queryFileMd5
+                    , 'queryFileOwners
                     ]

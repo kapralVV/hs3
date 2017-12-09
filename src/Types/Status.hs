@@ -26,6 +26,10 @@ instance (ToJSON a) => ToJSON (Status a)
 instance (FromJSON a) => FromJSON (Status a)
 $(deriveSafeCopy 0 'base ''Status)
 
+instance Functor Status where
+  fmap f (Done x)   = Done (f x)
+  fmap _ (Failed y) = Failed y
+
 maybeToStatus :: Maybe a -> Status a
 maybeToStatus Nothing  = Failed $ ErrorMessage "Not Found"
 maybeToStatus (Just a) = Done a
