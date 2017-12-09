@@ -19,28 +19,16 @@ createBucket :: Text -> Update AcidDB (Status BucketId)
 createBucket bucketName_ = do
   acidDb <- get
   let dbIndexInfo = fst $ buckets acidDb
-  let haveHoles = not . null $ holes dbIndexInfo
-  
-  let maxIndex_ | haveHoles = head $ holes dbIndexInfo
-                | otherwise = succ $ maxIndex dbIndexInfo
 
+  let maxIndex_ = getMaxIndex dbIndexInfo
   let newBucket = Bucket { bucketId = maxIndex_
                          , bucketName = bucketName_
                          , childBObjects = DS.empty
                          }
   let updatedAcidDB =
-        acidDb { buckets = (\(dbIndexInfo_, buckets_) ->
-                               ( if haveHoles then
-                                   (DbIndexInfo { maxIndex = maxIndex_
-                                                , holes = drop 1 $ holes dbIndexInfo_
-                                                }
-                                   )
-                                 else 
-                                   (DbIndexInfo { maxIndex = maxIndex_
-                                                , holes = holes dbIndexInfo_
-                                                }
-                                   )
-                               , IX.insert newBucket buckets_
+        acidDb { buckets = (\(_ , bucketSet) ->
+                               ( updateIndexInfo dbIndexInfo
+                               , IX.insert newBucket bucketSet
                                )
                            )
                            $ buckets acidDb
