@@ -19,15 +19,17 @@ instance ToJSON ErrorMessage
 instance FromJSON ErrorMessage
 $(deriveSafeCopy 0 'base ''ErrorMessage)
 
-newtype Status a = Status { status :: Either ErrorMessage a }
+data Status a = Done   { done :: a }
+              | Failed { error :: ErrorMessage }
               deriving (Show, Generic, Typeable, Data)
 instance (ToJSON a) => ToJSON (Status a)
 instance (FromJSON a) => FromJSON (Status a)
 $(deriveSafeCopy 0 'base ''Status)
 
-data Done = Done
-          | Failed
-          deriving (Show, Generic, Typeable, Data)
-instance ToJSON Done
-instance FromJSON Done
-$(deriveSafeCopy 0 'base ''Done)
+maybeToStatus :: Maybe a -> Status a
+maybeToStatus Nothing  = Failed $ ErrorMessage "Not Found"
+maybeToStatus (Just a) = Done a
+
+statusToBool :: Status a -> Bool
+statusToBool (Done _)   = True
+statusToBool (Failed _) = False

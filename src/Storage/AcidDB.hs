@@ -10,4 +10,7 @@ import Types.AcidDB
 
 import Storage.Bucket
 
-makeAcidic ''AcidDB [ 'createBucket ]
+makeAcidic ''AcidDB [ 'createBucket
+                    , 'queryBucketByName
+                    , 'queryBucketById
+                    ]

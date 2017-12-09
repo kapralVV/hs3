@@ -7,13 +7,13 @@
 module Types.FileSystem where
 
 
-import Other.IxSetAeson
+-- import Other.IxSetAeson
 
 import Data.Typeable
 import Data.Data
 import GHC.Generics
 
-import Data.Acid
+-- import Data.Acid
 import Data.SafeCopy
 import qualified Data.Aeson as A
 import qualified Data.IxSet as IX
@@ -24,7 +24,7 @@ import Data.Text
 import Data.ByteString.Lazy
 import Data.Time.Clock
 -- import Data.Digest.Pure.MD5
-import Test.QuickCheck
+-- import Test.QuickCheck
 
 
 
@@ -85,6 +85,8 @@ instance IX.Indexable Object where
 $(deriveSafeCopy 0 'base ''Object)
 $(deriveSafeCopy 0 'base ''ObjectType)
 
+---------------- FileData  ------------------
+
 data FileData = FileData { fileId :: FileId
                          , fileData :: ByteString
 --                         , fileMd5sum :: MD5Digest
@@ -97,8 +99,20 @@ $(deriveSafeCopy 0 'base ''FileData)
 
 -- data ObjectMetaData = undefined
 
+---------------- BucketName  ------------------
+
+newtype BucketName = BucketName Text
+                 deriving (Show, Eq, Ord, Data, Typeable, Generic, Monoid)
+instance A.ToJSON BucketName
+instance A.FromJSON BucketName
+
+$(deriveSafeCopy 0 'base ''BucketName)
+
+---------------- Bucket  ------------------
+
+
 data Bucket = Bucket { bucketId :: BucketId
-                     , bucketName :: Text
+                     , bucketName :: BucketName
                      , childBObjects :: DS.Set Object
 --                     , bucketOptions :: [BucketOptions]
                      } deriving (Show, Eq, Ord, Data, Typeable, Generic)
@@ -108,7 +122,7 @@ instance A.FromJSON Bucket
 instance IX.Indexable Bucket where
   empty = IX.ixSet
     [ IX.ixGen (IX.Proxy :: IX.Proxy BucketId)
-    , IX.ixGen (IX.Proxy :: IX.Proxy Text)
+    , IX.ixGen (IX.Proxy :: IX.Proxy BucketName)
     ]
 
 $(deriveSafeCopy 0 'base ''Bucket)

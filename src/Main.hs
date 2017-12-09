@@ -1,5 +1,5 @@
 import Types.FileSystem
-import Tests.ArbitraryInstances
+import Tests.ArbitraryInstances ()
 import Data.Aeson.Encode.Pretty
 import Test.QuickCheck
 import Data.ByteString.Lazy
