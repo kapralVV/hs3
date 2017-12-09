@@ -56,7 +56,7 @@ $(deriveSafeCopy 0 'base ''FileId)
 ---------------- ObjectType --------------
 
 data ObjectType = File { fileVersions :: DMS.Map UTCTime FileId }
-                | Directory { childObjects :: (DS.Set ObjectId) }
+                | Directory { childObjects :: DS.Set ObjectId }
                 | Link { linkedObject :: ObjectId}
                 deriving (Show, Eq, Ord, Data, Typeable, Generic)
 instance A.ToJSON ObjectType

@@ -19,7 +19,7 @@ import Storage.Generic
 createBucket :: BucketName -> Update AcidDB (Status BucketId)
 createBucket bucketName_ = do
   acidDb <- get
-  if (statusToBool . queryBy bucketName_ . snd . buckets $ acidDb) then do
+  if statusToBool . queryBy bucketName_ . snd . buckets $ acidDb then
     return . Failed $ ErrorMessage "Bucket exists"
     else do
     let dbIndexInfo = fst $ buckets acidDb
@@ -36,7 +36,7 @@ createBucket bucketName_ = do
                              )
                              $ buckets acidDb
                  }
-    put $ updatedAcidDB
+    put updatedAcidDB
     return $ Done maxIndex_
 
 queryAllBuckets :: Query AcidDB (Status (IX.IxSet Bucket))
@@ -46,7 +46,7 @@ queryBucketBy :: (Typeable k, MonadReader AcidDB f) => k -> f (Status Bucket)
 queryBucketBy key = (queryBy key . snd . buckets) `fmap` ask
 
 queryBucketByName :: BucketName -> Query AcidDB (Status Bucket)
-queryBucketByName key = queryBucketBy key
+queryBucketByName = queryBucketBy
 
 queryBucketById :: BucketId -> Query AcidDB (Status Bucket)
-queryBucketById key = queryBucketBy key
+queryBucketById = queryBucketBy

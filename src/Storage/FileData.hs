@@ -34,28 +34,28 @@ createFileData objectId_ fileData_ = do
                          )
                          $ files acidDb
                }
-  put $ updatedAcidDB
+  put updatedAcidDB
   return $ Done maxIndex_
 
 
 deleteFileData :: FileId -> Update AcidDB (Status ())
 deleteFileData fileId_ = do
   acidDb <- get
-  if (statusToBool . queryBy fileId_ . snd . files $ acidDb) then do
+  if statusToBool . queryBy fileId_ . snd . files $ acidDb then do
     let updatedAcidDB =
           acidDb { files = (\(dbIndexInfo, filesSet) ->
                                ( DbIndexInfo { maxIndex = maxIndex dbIndexInfo
-                                             , holes = fileId_ : (holes dbIndexInfo)
+                                             , holes = fileId_ : holes dbIndexInfo
                                              }
                                , IX.deleteIx fileId_ filesSet
                                )
                            )
                            $ files acidDb
                  }
-    put $ updatedAcidDB
+    put updatedAcidDB
     return $ Done ()
 
-    else do
+    else
     return . Failed $ ErrorMessage "File data not Found"
 
   

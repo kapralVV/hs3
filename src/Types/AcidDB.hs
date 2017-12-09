@@ -67,4 +67,4 @@ updateIndexInfoE dbIndexInfo (Right maxIndex_) = DbIndexInfo { maxIndex = maxInd
                                                              }
 
 updateIndexInfo :: Enum r => DbIndexInfo r -> DbIndexInfo r
-updateIndexInfo dbIndexInfo = liftA2 ($) updateIndexInfoE getMaxIndexE dbIndexInfo
+updateIndexInfo = liftA2 ($) updateIndexInfoE getMaxIndexE
