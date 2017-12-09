@@ -37,4 +37,3 @@ createBucket bucketName_ = do
   put $ updatedAcidDB
   return (Status $ Right maxIndex_)
 
-
