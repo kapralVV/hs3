@@ -23,6 +23,7 @@ import Data.Text
 
 import Data.ByteString.Lazy
 import Data.Time.Clock
+import Data.Int
 
 
 
@@ -89,6 +90,7 @@ data FileData = FileData { fileId :: FileId
                          , fileData :: ByteString
                          , ownedbyObjects :: DS.Set ObjectId
                          , fileMd5sum :: String
+                         , fileSize :: Int64
                          } deriving (Show, Eq, Ord, Data, Typeable)
 instance IX.Indexable FileData where
   empty = IX.ixSet

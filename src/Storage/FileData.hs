@@ -8,7 +8,7 @@ import Control.Monad.State
 import Control.Monad.Reader
 import qualified Data.IxSet                 as IX
 import qualified Data.Set                   as DS
-import Data.ByteString.Lazy
+import qualified Data.ByteString.Lazy       as DBL
 import Data.Digest.Pure.MD5
 
 import Types.FileSystem
@@ -16,7 +16,7 @@ import Types.AcidDB
 import Types.Status
 import Storage.Generic
 
-createFileData :: ObjectId -> ByteString -> Update AcidDB (Status FileId)
+createFileData :: ObjectId -> DBL.ByteString -> Update AcidDB (Status FileId)
 createFileData objectId_ fileData_ = do
   acidDb <- get
   let dbIndexInfo = fst $ files acidDb
@@ -25,6 +25,7 @@ createFileData objectId_ fileData_ = do
                              , fileData = fileData_
                              , ownedbyObjects = DS.singleton objectId_
                              , fileMd5sum = show $ md5 fileData_
+                             , fileSize = DBL.length fileData_
                              }
   let updatedAcidDB =
         acidDb { files = (\(_ , filesSet) ->
@@ -65,7 +66,7 @@ queryAllFiles = fmap (Done . snd . files) ask
 queryFile :: FileId -> Query AcidDB (Status FileData)
 queryFile key = (queryBy key . snd . files) `fmap` ask
 
-queryFileData :: FileId -> Query AcidDB (Status ByteString)
+queryFileData :: FileId -> Query AcidDB (Status DBL.ByteString)
 queryFileData key = fmap fileData `fmap` queryFile key
 
 queryFileMd5 :: FileId -> Query AcidDB (Status String)
