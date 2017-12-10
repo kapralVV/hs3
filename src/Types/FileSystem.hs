@@ -56,17 +56,27 @@ $(deriveSafeCopy 0 'base ''FileId)
 
 ---------------- ObjectType --------------
 
-data ObjectType = File { fileVersions :: DMS.Map UTCTime FileId }
+data ObjectType = File      { fileVersions :: DMS.Map UTCTime FileId }
                 | Directory { childObjects :: DS.Set ObjectId }
-                | Link { linkedObject :: ObjectId}
+                | Link      { linkedObject :: ObjectId}
                 deriving (Show, Eq, Ord, Data, Typeable, Generic)
 instance A.ToJSON ObjectType
 instance A.FromJSON ObjectType
 
+
+---------------- ObjectName -------------
+
+newtype ObjectName = ObjectName Text
+                 deriving (Show, Eq, Ord, Data, Typeable, Generic, Monoid)
+instance A.ToJSON ObjectName
+instance A.FromJSON ObjectName
+
+$(deriveSafeCopy 0 'base ''ObjectName)
+
 ---------------- Object ------------------
 
 data Object = Object { objectId :: ObjectId
-                     , objectName :: Text
+                     , objectName :: ObjectName
                      , parentBucketId :: BucketId
                      , parentObjectId :: Maybe ObjectId
                      , objectType :: ObjectType
@@ -113,7 +123,7 @@ $(deriveSafeCopy 0 'base ''BucketName)
 
 data Bucket = Bucket { bucketId :: BucketId
                      , bucketName :: BucketName
-                     , childBObjects :: DS.Set Object
+                     , childBObjects :: DS.Set ObjectId
 --                     , bucketOptions :: [BucketOptions]
                      } deriving (Show, Eq, Ord, Data, Typeable, Generic)
 instance A.ToJSON Bucket

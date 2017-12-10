@@ -39,14 +39,32 @@ createBucket bucketName_ = do
     put updatedAcidDB
     return $ Done maxIndex_
 
+queryAllBuckets' :: AcidDB -> Status (IX.IxSet Bucket)
+queryAllBuckets' = Done . snd . buckets
+
 queryAllBuckets :: Query AcidDB (Status (IX.IxSet Bucket))
-queryAllBuckets = fmap (Done . snd . buckets) ask
+queryAllBuckets = queryAllBuckets' `fmap` ask
+
+queryBucketBy' :: Typeable k => k -> AcidDB -> Status Bucket
+queryBucketBy' key = queryBy key . snd . buckets
 
 queryBucketBy :: (Typeable k, MonadReader AcidDB f) => k -> f (Status Bucket)
-queryBucketBy key = (queryBy key . snd . buckets) `fmap` ask
+queryBucketBy key = queryBucketBy' key `fmap` ask
+
+queryBucketByName' :: BucketName -> AcidDB -> Status Bucket
+queryBucketByName' = queryBucketBy'
 
 queryBucketByName :: BucketName -> Query AcidDB (Status Bucket)
 queryBucketByName = queryBucketBy
 
+queryBucketById' :: BucketId -> AcidDB -> Status Bucket
+queryBucketById' = queryBucketBy'
+
 queryBucketById :: BucketId -> Query AcidDB (Status Bucket)
 queryBucketById = queryBucketBy
+
+queryBChildObjects' :: BucketId -> AcidDB -> Status (DS.Set ObjectId)
+queryBChildObjects' key = fmap childBObjects . queryBucketById' key
+
+queryBChildObjects :: BucketId -> Query AcidDB (Status (DS.Set ObjectId))
+queryBChildObjects key = queryBChildObjects' key `fmap` ask

@@ -30,6 +30,16 @@ instance Functor Status where
   fmap f (Done x)   = Done (f x)
   fmap _ (Failed y) = Failed y
 
+instance Applicative Status where
+  pure           = Done
+  Done f <*> r   = fmap f r
+  Failed e <*> _ = Failed e
+
+instance  Monad Status where
+  return = pure
+  Done r >>= k   = k r
+  Failed e >>= _ = Failed e
+
 maybeToStatus :: Maybe a -> Status a
 maybeToStatus Nothing  = Failed $ ErrorMessage "Not Found"
 maybeToStatus (Just a) = Done a
@@ -37,3 +47,7 @@ maybeToStatus (Just a) = Done a
 statusToBool :: Status a -> Bool
 statusToBool (Done _)   = True
 statusToBool (Failed _) = False
+
+statusToBool' :: Status a -> Status Bool
+statusToBool' (Done _)   = Done True
+statusToBool' (Failed x) = Failed x
