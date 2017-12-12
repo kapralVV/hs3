@@ -65,22 +65,21 @@ queryChildObjects' key db =
 
 queryChildObjects :: ObjectId -> Query AcidDB (Status (DS.Set ObjectId))
 queryChildObjects key = queryChildObjects' key `fmap` ask
-  
-doesObjectNameExist :: ObjectName
-                     -> BucketId
-                     -> (Maybe ObjectId)
-                     -> Query AcidDB Bool
-doesObjectNameExist objectName_ parentBucketId_ parentObjectId_ = do
+
+findChildObjects :: BucketId
+                 -> (Maybe ObjectId)
+                 -> Query AcidDB (Status (IX.IxSet Object))
+findChildObjects parentBucketId_ parentObjectId_ = do
   acidDb <- ask
   case parentObjectId_ of
     Just parentObjectId' -> do
       let childObjects_ = fmap DS.toList $ queryChildObjects' parentObjectId' acidDb
       let allObjects_ = queryAllObjects' acidDb
-      return $ doesNameExist objectName_ allObjects_ childObjects_
+      return $ queryIxSetFromList allObjects_ childObjects_
     Nothing              -> do
       let childObjects_ = fmap DS.toList $ queryBChildObjects' parentBucketId_ acidDb
       let allObjects_ = queryAllObjects' acidDb
-      return $ doesNameExist objectName_ allObjects_ childObjects_
+      return $ queryIxSetFromList allObjects_ childObjects_
 
 createObject :: ObjectName
                  -> BucketId
@@ -88,28 +87,30 @@ createObject :: ObjectName
                  -> ObjectType
                  -> Update AcidDB (Status ObjectId)
 createObject objectName_ parentBucketId_ parentObjectId_ objectType_ = do
-  childObjects <- liftQuery $ doesObjectNameExist objectName_ parentBucketId_ parentObjectId_
+  childObjects' <- liftQuery $ findChildObjects parentBucketId_ parentObjectId_
   acidDb <- get
-  if childObjects
-    then return . Failed $ ErrorMessage "Object-name exists"
-    else do
-    let dbIndexInfo = fst $ objects acidDb
-    let maxIndex_   = getMaxIndex dbIndexInfo
-
-    let newObject = Object { objectId       = maxIndex_
-                           , objectName     = objectName_
-                           , parentBucketId = parentBucketId_
-                           , parentObjectId = parentObjectId_
-                           , objectType     = objectType_
-                           }
+  case childObjects' of
+    Failed e -> return $ Failed e
+    Done childObjects'' -> do
+      if statusToBool $ queryBy objectName_ childObjects''
+        then return . Failed $ ErrorMessage "Object-name exists"
+        else do
+        let dbIndexInfo = fst $ objects acidDb
+        let maxIndex_   = getMaxIndex dbIndexInfo
+        let newObject = Object { objectId       = maxIndex_
+                               , objectName     = objectName_
+                               , parentBucketId = parentBucketId_
+                               , parentObjectId = parentObjectId_
+                               , objectType     = objectType_
+                               }
 -- TODO Write childObjects update for parent Object
-    let updatedAcidDB =
-          acidDb { objects = (\(_, objectSet) ->
-                                (updateIndexInfo dbIndexInfo
-                                , IX.insert newObject objectSet
-                                )
-                             )
-                             $ objects acidDb
-                 }
-    put updatedAcidDB
-    return $ Done maxIndex_
+        let updatedAcidDB =
+              acidDb { objects = (\(_, objectSet) ->
+                                    (updateIndexInfo dbIndexInfo
+                                    , IX.insert newObject objectSet
+                                    )
+                                 )
+                                 $ objects acidDb
+                     }
+        put updatedAcidDB
+        return $ Done maxIndex_

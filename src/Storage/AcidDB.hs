@@ -10,11 +10,13 @@ import Types.AcidDB
 
 import Storage.Bucket
 import Storage.FileData
+import Storage.Object
 
 makeAcidic ''AcidDB [ 'createBucket
                     , 'queryAllBuckets
                     , 'queryBucketByName
                     , 'queryBucketById
+                    , 'queryBChildObjects
                     , 'createFileData
                     , 'deleteFileData
                     , 'queryAllFiles
@@ -22,4 +24,10 @@ makeAcidic ''AcidDB [ 'createBucket
                     , 'queryFileData
                     , 'queryFileMd5
                     , 'queryFileOwners
+                    , 'queryAllObjects
+                    , 'queryObjectById
+                    , 'queryObjectByName
+                    , 'queryObjectType
+                    , 'queryChildObjects
+                    , 'createObject
                     ]

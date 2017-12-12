@@ -11,10 +11,10 @@ import Types.Status
 queryBy :: (Ord a, Typeable a, Typeable k, IX.Indexable a) => k -> IX.IxSet a -> Status a
 queryBy key = maybeToStatus . IX.getOne . IX.getEQ key
 
-doesNameExist
-  :: (Ord a, Typeable k, Typeable a, Typeable k1, IX.Indexable a)
-  => k -> Status (IX.IxSet a) -> Status [k1] -> Bool
-doesNameExist objectName_ allObjects_ childObjects_ =
-  statusToBool (queryBy objectName_ <$> (liftA2 (IX.@*) allObjects_ childObjects_))
+queryIxSetFromList :: (Ord a, Typeable a, Typeable k, IX.Indexable a)
+                   => Status (IX.IxSet a)
+                   -> Status [k]
+                   -> Status (IX.IxSet a)
+queryIxSetFromList all' listIds = liftA2 (IX.@+) all' listIds
 
 
