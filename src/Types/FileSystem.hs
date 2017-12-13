@@ -18,8 +18,6 @@ import GHC.Generics
 import Data.SafeCopy
 import qualified Data.Aeson as A
 import qualified Data.IxSet as IX
-import qualified Data.Map.Strict as DMS
-import qualified Data.Set as DS
 import Data.Text
 
 import Data.ByteString.Lazy
@@ -57,9 +55,9 @@ $(deriveSafeCopy 0 'base ''FileId)
 
 ---------------- ObjectType --------------
 
-data ObjectType = File      { fileVersions :: DMS.Map UTCTime FileId }
-                | Directory { childObjects :: DS.Set ObjectId }
-                | Link      { linkedObject :: ObjectId}
+data ObjectType = File
+                | Directory
+                | Link  { linkedObject :: ObjectId}
                 deriving (Show, Eq, Ord, Data, Typeable, Generic)
 instance A.ToJSON ObjectType
 instance A.FromJSON ObjectType
@@ -88,8 +86,10 @@ instance A.FromJSON Object
 
 instance IX.Indexable Object where
   empty = IX.ixSet
-    [ IX.ixGen (IX.Proxy :: IX.Proxy ObjectId)
-    , IX.ixGen (IX.Proxy :: IX.Proxy ObjectName)
+    [ IX.ixFun (\x -> [objectId x])
+    , IX.ixFun (\x -> [objectName x])
+    , IX.ixFun (\x -> [parentBucketId x])
+    , IX.ixFun (\x -> [parentObjectId x])
     ]
 
 $(deriveSafeCopy 0 'base ''Object)
@@ -99,13 +99,16 @@ $(deriveSafeCopy 0 'base ''ObjectType)
 
 data FileData = FileData { fileId :: FileId
                          , fileData :: ByteString
-                         , ownedbyObjects :: DS.Set ObjectId
+                         , parentFObjectId :: ObjectId
                          , fileMd5sum :: String
                          , fileSize :: Int64
+                         , createTime :: UTCTime
                          } deriving (Show, Eq, Ord, Data, Typeable)
 instance IX.Indexable FileData where
   empty = IX.ixSet
-    [ IX.ixGen (IX.Proxy :: IX.Proxy FileId)]
+    [ IX.ixFun (\x -> [fileId x])
+    , IX.ixFun (\x -> [parentFObjectId x])
+    ]
 
 $(deriveSafeCopy 0 'base ''FileData)
 
@@ -124,7 +127,6 @@ $(deriveSafeCopy 0 'base ''BucketName)
 
 data Bucket = Bucket { bucketId :: BucketId
                      , bucketName :: BucketName
-                     , childBObjects :: DS.Set ObjectId
 --                     , bucketOptions :: [BucketOptions]
                      } deriving (Show, Eq, Ord, Data, Typeable, Generic)
 instance A.ToJSON Bucket
@@ -132,8 +134,8 @@ instance A.FromJSON Bucket
 
 instance IX.Indexable Bucket where
   empty = IX.ixSet
-    [ IX.ixGen (IX.Proxy :: IX.Proxy BucketId)
-    , IX.ixGen (IX.Proxy :: IX.Proxy BucketName)
+    [ IX.ixFun (\x -> [bucketId x])
+    , IX.ixFun (\x -> [bucketName x])
     ]
 
 $(deriveSafeCopy 0 'base ''Bucket)

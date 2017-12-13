@@ -17,21 +17,20 @@ makeAcidic ''AcidDB [ 'createBucket
                     , 'queryAllBuckets
                     , 'queryBucketByName
                     , 'queryBucketById
-                    , 'queryBChildObjectIds
-                    , 'queryBChildObjects
                     , 'createFileData
                     , 'deleteFileData
                     , 'queryAllFiles
                     , 'queryFile
                     , 'queryFileData
                     , 'queryFileMd5
-                    , 'queryFileOwners
+                    , 'queryParentFObjectId
+                    , 'queryParentFObject
                     , 'queryAllObjects
                     , 'queryObjectById
                     , 'queryObjectByName
                     , 'queryObjectType
                     , 'queryObjectName
-                    , 'queryChildObjectIds
                     , 'queryChildObjects
+                    , 'queryChidFiles
                     , 'createObject
                     ]

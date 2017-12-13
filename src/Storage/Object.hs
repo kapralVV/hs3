@@ -1,7 +1,6 @@
 {-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE RecordWildCards   #-}
 
 module Storage.Object where
 
@@ -10,7 +9,6 @@ import Data.Typeable
 import Control.Monad.State
 import Control.Monad.Reader
 import qualified Data.IxSet                 as IX
-import qualified Data.Set                   as DS
 import qualified Data.ByteString.Lazy       as DBL
 import Control.Applicative
 
@@ -19,13 +17,12 @@ import Types.AcidDB
 import Types.Status
 import Storage.Generic
 import Storage.FileData
-import Storage.Bucket
 
-queryAllObjects' :: AcidDB -> Status (IX.IxSet Object)
-queryAllObjects' = Done . snd . objects
+queryAllObjects' :: AcidDB -> IX.IxSet Object
+queryAllObjects' = snd . objects
 
 queryAllObjects :: Query AcidDB (Status (IX.IxSet Object))
-queryAllObjects = queryAllObjects' `fmap` ask
+queryAllObjects = (Done . queryAllObjects') `fmap` ask
 
 queryObjectBy' :: Typeable k =>  k -> AcidDB -> Status Object
 queryObjectBy' key = queryBy key . snd . objects
@@ -57,39 +54,47 @@ queryObjectName' key = fmap objectName . queryObjectById' key
 queryObjectName :: ObjectId -> Query AcidDB (Status ObjectName)
 queryObjectName key = queryObjectName' key `fmap` ask
 
-queryChildObjectIds' :: ObjectId -> AcidDB -> Status (DS.Set ObjectId)
-queryChildObjectIds' key db =
-  case queryObjectType' key db of
-    Failed _                       -> Failed $ ErrorMessage "Object is not found"
-    Done (Directory childObjects') -> Done childObjects'
-    _                              -> Failed $ ErrorMessage "Is not a directory"
+queryChildObjects'' :: BucketId -> Maybe ObjectId -> AcidDB -> IX.IxSet Object
+queryChildObjects'' bid pob acidDb = queryAllObjects' acidDb IX.@= bid IX.@= pob
 
-queryChildObjectIds :: ObjectId -> Query AcidDB (Status (DS.Set ObjectId))
-queryChildObjectIds key = queryChildObjectIds' key `fmap` ask
+queryChildObjects' :: BucketId -> Maybe ObjectId -> AcidDB -> Status (IX.IxSet Object)
+queryChildObjects' bid pob@(Just x) acidDb =
+  case isDirectory' x acidDb of
+    Done True    -> Done $  queryChildObjects'' bid pob acidDb
+    Done False -> Failed $ ErrorMessage "Not a Directory"
+    Failed e     -> Failed e
+queryChildObjects' bid pob acidDb = Done $ queryChildObjects'' bid pob acidDb
 
-queryChildObjects' :: ObjectId -> AcidDB -> Status (IX.IxSet Object)
-queryChildObjects' oid = liftA2 queryIxSetByKeys queryAllObjects' (queryChildObjectIds' oid)
+queryChildObjects :: BucketId -> Maybe ObjectId -> Query AcidDB (Status (IX.IxSet Object))
+queryChildObjects bid pod = queryChildObjects' bid pod `fmap` ask
 
-queryChildObjects ::  ObjectId -> Query AcidDB (Status (IX.IxSet Object))
-queryChildObjects oid = queryChildObjects' oid `fmap` ask
+queryParentFObject' :: FileId -> AcidDB -> Status Object
+queryParentFObject' key acidDb = queryParentFObjectId' key acidDb >>= flip queryObjectById' acidDb
 
-queryBChildObjects' :: BucketId -> AcidDB -> Status (IX.IxSet Object)
-queryBChildObjects' bid = liftA2 queryIxSetByKeys queryAllObjects' (queryBChildObjectIds' bid)
+queryParentFObject :: FileId -> Query AcidDB (Status Object)
+queryParentFObject key = queryParentFObject' key `fmap` ask
 
-queryBChildObjects :: BucketId -> Query AcidDB (Status (IX.IxSet Object))
-queryBChildObjects bid = queryBChildObjects' bid `fmap` ask
+queryChidFiles' :: ObjectId -> AcidDB -> Status (IX.IxSet FileData)
+queryChidFiles' key acidDb = case queryObjectType' key acidDb of
+                               (Done File) -> Done . IX.getEQ key $ queryAllFiles' acidDb
+                               (Failed e)  -> Failed e
+                               _           -> Failed $ ErrorMessage "Not a File"
 
+queryChidFiles :: ObjectId -> Query AcidDB (Status (IX.IxSet FileData))
+queryChidFiles key = queryChidFiles' key `fmap` ask
 
-addObjectChilds' :: ObjectId -> Object -> Object
-addObjectChilds' oid object@Object{..} =
-  object { objectType = objectType
-           { childObjects =  DS.insert oid (childObjects objectType)  }
-         }
-         
+isFile', isDirectory', isLink' :: ObjectId -> AcidDB -> Status Bool
+isFile'      key = fmap (== File)      . queryObjectType' key
+isDirectory' key = fmap (== Directory) . queryObjectType' key
+isLink' key acidDb = case queryObjectType' key acidDb of
+                       (Done (Link _)) -> Done True
+                       (Failed e)      -> Failed e
+                       _               -> Failed $ ErrorMessage "Not a Link"
+
 
 createObject :: ObjectName
                  -> BucketId
-                 -> (Maybe ObjectId)
+                 -> Maybe ObjectId
                  -> ObjectType
                  -> Update AcidDB (Status ObjectId)
 createObject objectName_ parentBucketId_ parentObjectId_ objectType_ = do
@@ -104,60 +109,23 @@ createObject objectName_ parentBucketId_ parentObjectId_ objectType_ = do
                          , objectType     = objectType_
                          }
 
-  case parentObjectId_ of
-    Nothing -> do
-      let childObjects = queryBChildObjects' parentBucketId_ acidDb
-      case childObjects of
-        Failed e -> return $ Failed e
-        Done childObjects_ -> do
-          if statusToBool $ queryBy objectName_ childObjects_
-            then return . Failed $ ErrorMessage "Object-name exists"
-            else do
-            let updatedBucket = fromStatus . fmap (addBucketChilds' maxIndex_) $ queryBucketById' parentBucketId_ acidDb
-            let updatedAcidDB =
-                  acidDb { objects = (\(_, objectSet) ->
-                                        (updateIndexInfo dbIndexInfo
-                                        , IX.insert newObject objectSet
-                                        )
-                                     )
-                                     $ objects acidDb
-                         , buckets = (\(i , bucketSet) ->
-                                        ( i
-                                        , IX.updateIx parentBucketId_ updatedBucket bucketSet
-                                        )
-                                     )
-                                     $ buckets acidDb
-                         }
-            put updatedAcidDB
-            return $ Done maxIndex_
-    Just parentObjectId' -> do
-      let childObjects = queryChildObjects' parentObjectId' acidDb
-      case childObjects of
-        Failed e -> return $ Failed e
-        Done childObjects_ -> do
-          if statusToBool $ queryBy objectName_ childObjects_
-            then return . Failed $ ErrorMessage "Object-name exists"
-            else do
-            let updatedParentObject = fromStatus . fmap (addObjectChilds' maxIndex_) $ queryObjectById' parentObjectId' acidDb
-            let updatedAcidDB =
-                  acidDb { objects = (\(_, objectSet) ->
-                                        (updateIndexInfo dbIndexInfo
-                                        , IX.insert newObject objectSet
-                                        )
-                                     )
-                                     $ objects acidDb
-                         }
-
-            let updatedAcidDB' =
-                  acidDb { objects = (\(i, objectSet) ->
-                                        (i
-                                        , IX.updateIx parentObjectId' updatedParentObject objectSet
-                                        )
-                                     )
-                                     $ objects updatedAcidDB
-                         }
-            put updatedAcidDB'
-            return $ Done maxIndex_
+  let childObjects = queryChildObjects' parentBucketId_ parentObjectId_ acidDb
+  case childObjects of
+    Failed e -> return $ Failed e
+    Done childObjects_ ->
+      if statusToBool $ queryBy objectName_ childObjects_
+        then return . Failed $ ErrorMessage "Object-name exists"
+        else do
+        let updatedAcidDB =
+              acidDb { objects = (\(_, objectSet) ->
+                                    (updateIndexInfo dbIndexInfo
+                                    , IX.insert newObject objectSet
+                                    )
+                                 )
+                                 $ objects acidDb
+                     }
+        put updatedAcidDB
+        return $ Done maxIndex_
 
 
   

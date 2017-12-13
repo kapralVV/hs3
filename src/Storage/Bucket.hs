@@ -10,7 +10,6 @@ import Data.Typeable
 import Control.Monad.State
 import Control.Monad.Reader
 import qualified Data.IxSet                 as IX
-import qualified Data.Set                   as DS
 
 import Types.FileSystem
 import Types.AcidDB
@@ -27,7 +26,6 @@ createBucket bucketName_ = do
     let maxIndex_ = getMaxIndex dbIndexInfo
     let newBucket = Bucket { bucketId = maxIndex_
                            , bucketName = bucketName_
-                           , childBObjects = DS.empty
                            }
     let updatedAcidDB =
           acidDb { buckets = (\(_ , bucketSet) ->
@@ -57,10 +55,6 @@ updateBucket bucket@Bucket{..} = do
     return $ Done ()
     else return . Failed $ ErrorMessage "Bucket does not exist"
 
-addBucketChilds' :: ObjectId -> Bucket -> Bucket
-addBucketChilds' oid bucket@Bucket{..} =
-  bucket { childBObjects = DS.insert oid childBObjects}
-
 queryAllBuckets' :: AcidDB -> Status (IX.IxSet Bucket)
 queryAllBuckets' = Done . snd . buckets
 
@@ -84,9 +78,3 @@ queryBucketById' = queryBucketBy'
 
 queryBucketById :: BucketId -> Query AcidDB (Status Bucket)
 queryBucketById = queryBucketBy
-
-queryBChildObjectIds' :: BucketId -> AcidDB -> Status (DS.Set ObjectId)
-queryBChildObjectIds' key = fmap childBObjects . queryBucketById' key
-
-queryBChildObjectIds :: BucketId -> Query AcidDB (Status (DS.Set ObjectId))
-queryBChildObjectIds key = queryBChildObjectIds' key `fmap` ask
