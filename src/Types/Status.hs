@@ -51,3 +51,7 @@ statusToBool (Failed _) = False
 statusToBool' :: Status a -> Status Bool
 statusToBool' (Done _)   = Done True
 statusToBool' (Failed x) = Failed x
+
+fromStatus :: Status a -> a
+fromStatus (Done a)   = a
+fromStatus (Failed _) = error "fromStatus: Failed"

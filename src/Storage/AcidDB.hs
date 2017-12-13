@@ -13,6 +13,7 @@ import Storage.FileData
 import Storage.Object
 
 makeAcidic ''AcidDB [ 'createBucket
+                    , 'updateBucket
                     , 'queryAllBuckets
                     , 'queryBucketByName
                     , 'queryBucketById
@@ -29,5 +30,6 @@ makeAcidic ''AcidDB [ 'createBucket
                     , 'queryObjectByName
                     , 'queryObjectType
                     , 'queryChildObjects
+                    , 'findChildObjects
                     , 'createObject
                     ]

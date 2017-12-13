@@ -3,6 +3,7 @@
 {-# LANGUAGE TypeFamilies       #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving      #-}
+{-# LANGUAGE RecordWildCards    #-}
 
 module Types.FileSystem where
 
@@ -88,7 +89,7 @@ instance A.FromJSON Object
 instance IX.Indexable Object where
   empty = IX.ixSet
     [ IX.ixGen (IX.Proxy :: IX.Proxy ObjectId)
-    , IX.ixGen (IX.Proxy :: IX.Proxy Text)
+    , IX.ixGen (IX.Proxy :: IX.Proxy ObjectName)
     ]
 
 $(deriveSafeCopy 0 'base ''Object)

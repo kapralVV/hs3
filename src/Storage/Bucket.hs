@@ -1,6 +1,7 @@
 {-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE RecordWildCards  #-}
 
 module Storage.Bucket where
 
@@ -19,7 +20,7 @@ import Storage.Generic
 createBucket :: BucketName -> Update AcidDB (Status BucketId)
 createBucket bucketName_ = do
   acidDb <- get
-  if statusToBool . queryBy bucketName_ . snd . buckets $ acidDb then
+  if statusToBool $ queryBucketByName' bucketName_ acidDb then
     return . Failed $ ErrorMessage "Bucket exists"
     else do
     let dbIndexInfo = fst $ buckets acidDb
@@ -38,6 +39,27 @@ createBucket bucketName_ = do
                  }
     put updatedAcidDB
     return $ Done maxIndex_
+
+updateBucket :: Bucket -> Update AcidDB (Status ())
+updateBucket bucket@Bucket{..} = do
+  acidDb <- get
+  if statusToBool $ queryBucketById' bucketId acidDb
+    then do
+    let updatedAcidDB =
+          acidDb { buckets = (\(i , bucketSet) ->
+                                 ( i
+                                 , IX.updateIx bucketId bucket bucketSet
+                                 )
+                             )
+                             $ buckets acidDb
+                 }
+    put updatedAcidDB
+    return $ Done ()
+    else return . Failed $ ErrorMessage "Bucket does not exist"
+
+addBucketChilds' :: ObjectId -> Bucket -> Bucket
+addBucketChilds' oid bucket@Bucket{..} =
+  bucket { childBObjects = DS.insert oid childBObjects}
 
 queryAllBuckets' :: AcidDB -> Status (IX.IxSet Bucket)
 queryAllBuckets' = Done . snd . buckets

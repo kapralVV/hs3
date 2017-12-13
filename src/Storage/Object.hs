@@ -103,7 +103,6 @@ createObject objectName_ parentBucketId_ parentObjectId_ objectType_ = do
                                , parentObjectId = parentObjectId_
                                , objectType     = objectType_
                                }
--- TODO Write childObjects update for parent Object
         let updatedAcidDB =
               acidDb { objects = (\(_, objectSet) ->
                                     (updateIndexInfo dbIndexInfo
@@ -113,4 +112,10 @@ createObject objectName_ parentBucketId_ parentObjectId_ objectType_ = do
                                  $ objects acidDb
                      }
         put updatedAcidDB
+        --- Do not like the code below. Must be a good solution
+        case parentObjectId_ of
+          Just parentObjectId'' -> undefined
+          Nothing -> do
+            let newBucket = fmap (addBucketChilds' maxIndex_) $ queryBucketById' parentBucketId_ acidDb
+            updateBucket $ fromStatus newBucket 
         return $ Done maxIndex_
