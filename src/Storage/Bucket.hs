@@ -85,8 +85,8 @@ queryBucketById' = queryBucketBy'
 queryBucketById :: BucketId -> Query AcidDB (Status Bucket)
 queryBucketById = queryBucketBy
 
-queryBChildObjects' :: BucketId -> AcidDB -> Status (DS.Set ObjectId)
-queryBChildObjects' key = fmap childBObjects . queryBucketById' key
+queryBChildObjectIds' :: BucketId -> AcidDB -> Status (DS.Set ObjectId)
+queryBChildObjectIds' key = fmap childBObjects . queryBucketById' key
 
-queryBChildObjects :: BucketId -> Query AcidDB (Status (DS.Set ObjectId))
-queryBChildObjects key = queryBChildObjects' key `fmap` ask
+queryBChildObjectIds :: BucketId -> Query AcidDB (Status (DS.Set ObjectId))
+queryBChildObjectIds key = queryBChildObjectIds' key `fmap` ask

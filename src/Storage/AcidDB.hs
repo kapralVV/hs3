@@ -17,6 +17,7 @@ makeAcidic ''AcidDB [ 'createBucket
                     , 'queryAllBuckets
                     , 'queryBucketByName
                     , 'queryBucketById
+                    , 'queryBChildObjectIds
                     , 'queryBChildObjects
                     , 'createFileData
                     , 'deleteFileData
@@ -29,7 +30,8 @@ makeAcidic ''AcidDB [ 'createBucket
                     , 'queryObjectById
                     , 'queryObjectByName
                     , 'queryObjectType
+                    , 'queryObjectName
+                    , 'queryChildObjectIds
                     , 'queryChildObjects
-                    , 'findChildObjects
                     , 'createObject
                     ]
