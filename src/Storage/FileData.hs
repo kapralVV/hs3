@@ -16,6 +16,8 @@ import Types.AcidDB
 import Types.Status
 import Storage.Generic
 
+-- Function does not check if Object is <File>
+-- This should be checked on <Object> side
 createFileData :: ObjectId -> UTCTime -> DBL.ByteString -> Update AcidDB (Status FileId)
 createFileData objectId_ time fileData_ = do
   acidDb <- get
@@ -43,7 +45,7 @@ createFileData objectId_ time fileData_ = do
 deleteFileData :: FileId -> Update AcidDB (Status ())
 deleteFileData fileId_ = do
   acidDb <- get
-  if statusToBool . queryBy fileId_ . snd . files $ acidDb then do
+  if statusToBool . queryFile' fileId_ $ acidDb then do
     let updatedAcidDB =
           acidDb { files = (\(dbIndexInfo, filesSet) ->
                                ( DbIndexInfo { maxIndex = maxIndex dbIndexInfo

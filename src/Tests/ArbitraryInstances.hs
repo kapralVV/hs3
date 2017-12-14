@@ -1,6 +1,7 @@
 module Tests.ArbitraryInstances where
 
 import Types.FileSystem
+import Storage.AcidDB
 
 import Data.Typeable
 
@@ -37,18 +38,14 @@ instance Arbitrary ObjectId where
 instance Arbitrary FileId where
   arbitrary = fmap FileId $ choose (1,1000)
 
+instance Arbitrary BucketName where
+  arbitrary = pure BucketName <*> (arbitrary :: Gen Text)
+
+instance Arbitrary ObjectName where
+  arbitrary = pure ObjectName <*> (arbitrary :: Gen Text)
+
 instance Arbitrary ObjectType where
-  arbitrary = oneof [ liftA Link arbitrary 
-                    , liftA Directory arbitrary
-                    , liftA File arbitrary
+  arbitrary = oneof [ pure Link <*> (arbitrary :: Gen ObjectId)
+                    , pure Directory
+                    , pure File
                     ]
-
-
-instance Arbitrary Object where
-  arbitrary = pure Object
-              <*> (arbitrary :: Gen ObjectId)
-              <*> (arbitrary :: Gen Text)
-              <*> (arbitrary :: Gen BucketId)
-              <*> (arbitrary :: Gen (Maybe ObjectId))
-              <*> (arbitrary :: Gen ObjectType)
-
