@@ -14,14 +14,14 @@ import Data.Text (Text)
 
 
 newtype ErrorMessage = ErrorMessage Text
-                     deriving (Show, Generic, Typeable, Data)
+                     deriving (Show,Eq, Generic, Typeable, Data)
 instance ToJSON ErrorMessage
 instance FromJSON ErrorMessage
 $(deriveSafeCopy 0 'base ''ErrorMessage)
 
 data Status a = Done a
               | Failed ErrorMessage
-              deriving (Show, Generic, Typeable, Data)
+              deriving (Show, Eq, Generic, Typeable, Data)
 instance (ToJSON a) => ToJSON (Status a)
 instance (FromJSON a) => FromJSON (Status a)
 $(deriveSafeCopy 0 'base ''Status)
