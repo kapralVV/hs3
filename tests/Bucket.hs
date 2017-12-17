@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE FlexibleContexts  #-}
+
 module Bucket where
 
 import Types.FileSystem
@@ -16,13 +16,10 @@ import Test.QuickCheck
 import Test.QuickCheck.Monadic
 import qualified Data.IxSet  as IX
 import qualified Data.Set    as DS
-import Control.Applicative (liftA2)
 
+import Generic
 import Test.Hspec
 
-
-shouldReturn' :: (HasCallStack, Show a, Eq a) => IO a -> IO a -> Expectation
-shouldReturn' action1 action2 = liftA2 (==) action1 action2 `shouldReturn` True
 
 prop_createBucket :: AcidState AcidDB -> BucketName -> Property
 prop_createBucket db name = monadicIO $ do
@@ -62,5 +59,5 @@ bucketTests = do
 
         it "Check the maximum index. maximum BucketId should equal maxIndex" $ do
           \db -> (fmap (DS.findMax . DS.map bucketId . IX.toSet . fromStatus) $ query' db QueryAllBuckets)
-                 `shouldReturn'`
+                 `compareIoActions`
                  (fmap maxIndex $ query' db QueryBucketIndex)
