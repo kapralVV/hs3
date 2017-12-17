@@ -1,4 +1,4 @@
-module ArbitraryInstances where
+module Tests.Storage.ArbitraryInstances where
 
 import Types.FileSystem
 import Storage.AcidDB

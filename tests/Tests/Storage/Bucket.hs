@@ -1,13 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Bucket where
+module Tests.Storage.Bucket where
 
 import Types.FileSystem
 import Types.DbIndexInfo
 import Types.AcidDB
 import Types.Status
 import Storage.AcidDB
-import ArbitraryInstances()
+import Tests.Storage.ArbitraryInstances()
 
 import Data.Acid
 import Data.Acid.Advanced
@@ -17,7 +17,7 @@ import Test.QuickCheck.Monadic
 import qualified Data.IxSet  as IX
 import qualified Data.Set    as DS
 
-import Generic
+import Tests.Generic
 import Test.Hspec
 
 

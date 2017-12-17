@@ -1,5 +1,5 @@
 import Test.Hspec
-import Bucket
+import Tests.Storage.Bucket
 
 main :: IO ()
 main = mapM_ hspec [bucketTests]

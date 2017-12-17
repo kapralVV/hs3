@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts  #-}
 
-module Generic where
+module Tests.Generic where
 
 import Test.Hspec
 import Control.Applicative (liftA2)
