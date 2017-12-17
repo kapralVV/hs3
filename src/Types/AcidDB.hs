@@ -8,15 +8,9 @@ import Data.Data
 import GHC.Generics
 import Data.SafeCopy
 import Data.IxSet (IxSet, empty)
-import Control.Applicative (liftA2)
 
 import Types.FileSystem
-
-data DbIndexInfo a = DbIndexInfo { maxIndex :: a
-                                 , holes :: [a]
-                                 }
-                   deriving (Show, Eq, Ord, Data, Typeable)
-$(deriveSafeCopy 0 'base ''DbIndexInfo)
+import Types.DbIndexInfo
 
 data AcidDB = AcidDB { buckets :: (DbIndexInfo BucketId, IxSet Bucket)
                      , objects :: (DbIndexInfo ObjectId, IxSet Object)
@@ -24,9 +18,6 @@ data AcidDB = AcidDB { buckets :: (DbIndexInfo BucketId, IxSet Bucket)
                      }
             deriving (Show, Generic, Typeable, Data)
 $(deriveSafeCopy 0 'base ''AcidDB)
-
-
-
 
 initAcidDB :: AcidDB
 initAcidDB = AcidDB { buckets = (DbIndexInfo { maxIndex = BucketId 0
@@ -46,25 +37,3 @@ initAcidDB = AcidDB { buckets = (DbIndexInfo { maxIndex = BucketId 0
                                 )
                     }
 
---- updating the index.
-
-haveHoles :: DbIndexInfo a -> Bool
-haveHoles = not . null . holes
-
-getIndexE :: Enum r => DbIndexInfo r -> Either r r
-getIndexE dbIndexInfo | haveHoles dbIndexInfo = Left . head $ holes dbIndexInfo
-                      | otherwise = Right . succ $ maxIndex dbIndexInfo
-
-getMaxIndex :: Enum r => DbIndexInfo r -> r
-getMaxIndex = either id id . getIndexE
-
-updateIndexInfoE :: Enum r => DbIndexInfo r -> Either r r -> DbIndexInfo r
-updateIndexInfoE dbIndexInfo (Left _) =  DbIndexInfo { maxIndex = maxIndex dbIndexInfo
-                                                     , holes = drop 1 $ holes dbIndexInfo
-                                                     }
-updateIndexInfoE dbIndexInfo (Right maxIndex_) = DbIndexInfo { maxIndex = maxIndex_
-                                                             , holes = holes dbIndexInfo
-                                                             }
-
-updateIndexInfo :: Enum r => DbIndexInfo r -> DbIndexInfo r
-updateIndexInfo = liftA2 ($) updateIndexInfoE getIndexE

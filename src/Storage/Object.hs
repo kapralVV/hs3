@@ -13,6 +13,7 @@ import qualified Data.ByteString.Lazy       as DBL
 import Control.Applicative
 
 import Types.FileSystem
+import Types.DbIndexInfo
 import Types.AcidDB
 import Types.Status
 import Storage.Generic

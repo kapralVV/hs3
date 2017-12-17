@@ -12,6 +12,7 @@ import Data.Digest.Pure.MD5
 import Data.Time.Clock
 
 import Types.FileSystem
+import Types.DbIndexInfo
 import Types.AcidDB
 import Types.Status
 import Storage.Generic

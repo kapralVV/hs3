@@ -12,6 +12,7 @@ import Control.Monad.Reader
 import qualified Data.IxSet                 as IX
 
 import Types.FileSystem
+import Types.DbIndexInfo
 import Types.AcidDB
 import Types.Status
 import Storage.Generic
