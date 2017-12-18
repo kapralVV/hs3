@@ -2,11 +2,15 @@ module Tests.Storage.ArbitraryInstances where
 
 import Types.FileSystem
 import Storage.AcidDB
+import Types.Status
 
 import Data.Typeable
 
 import Test.QuickCheck
 import Data.Time
+import Types.AcidDB
+import Data.Acid
+import Data.Acid.Advanced
 import qualified Data.IxSet as IX
 import Data.Text.Arbitrary
 import Control.Applicative
@@ -29,8 +33,9 @@ instance (Ord a, Arbitrary a, Typeable a, IX.Indexable a) => Arbitrary (IX.IxSet
     k <- choose (0,5)
     fmap IX.fromList (vectorOf k arbitrary)
 
-instance Arbitrary BucketId where
-  arbitrary = fmap BucketId $ choose (1,1000)
+genBucketId :: AcidState AcidDB -> IO BucketId
+genBucketId db = (fmap (oneof . map (return . bucketId) . IX.toList . fromStatus)
+                   $ query' db QueryAllBuckets) >>= generate
   
 instance Arbitrary ObjectId where
   arbitrary = fmap ObjectId $ choose (1,1000)
