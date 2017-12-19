@@ -1,7 +1,6 @@
 module Storage.DbIndexInfo where
 
 import Data.Acid
-import Data.Typeable
 import Control.Monad.Reader
 
 import Types.FileSystem

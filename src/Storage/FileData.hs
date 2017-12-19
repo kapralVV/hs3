@@ -61,7 +61,7 @@ deleteFileData fileId_ = do
     return $ Done ()
 
     else
-    return . Failed $ ErrorMessage "File data not Found"
+    return $ Failed NotFound
 
   
 queryAllFiles' :: AcidDB -> IX.IxSet FileData

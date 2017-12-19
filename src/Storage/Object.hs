@@ -11,6 +11,7 @@ import Control.Monad.Reader
 import qualified Data.IxSet                 as IX
 import qualified Data.ByteString.Lazy       as DBL
 import Control.Applicative
+import Data.Time.Clock
 
 import Types.FileSystem
 import Types.DbIndexInfo
@@ -62,9 +63,9 @@ queryChildObjects' :: BucketId -> Maybe ObjectId -> AcidDB -> Status (IX.IxSet O
 queryChildObjects' bid pob@(Just x) acidDb =
   case isDirectory' x acidDb of
     Done True    -> Done $  queryChildObjects'' bid pob acidDb
-    Done False -> Failed $ ErrorMessage "Not a Directory"
+    Done False   -> Failed NotADirectory
     Failed e     -> Failed e
-queryChildObjects' bid pob acidDb = Done $ queryChildObjects'' bid pob acidDb
+queryChildObjects' bid Nothing acidDb = Done $ queryChildObjects'' bid Nothing acidDb
 
 queryChildObjects :: BucketId -> Maybe ObjectId -> Query AcidDB (Status (IX.IxSet Object))
 queryChildObjects bid pod = queryChildObjects' bid pod `fmap` ask
@@ -79,7 +80,7 @@ queryChidFiles' :: ObjectId -> AcidDB -> Status (IX.IxSet FileData)
 queryChidFiles' key acidDb = case queryObjectType' key acidDb of
                                (Done File) -> Done . IX.getEQ key $ queryAllFiles' acidDb
                                (Failed e)  -> Failed e
-                               _           -> Failed $ ErrorMessage "Not a File"
+                               _           -> Failed NotAFile
 
 queryChidFiles :: ObjectId -> Query AcidDB (Status (IX.IxSet FileData))
 queryChidFiles key = queryChidFiles' key `fmap` ask
@@ -90,7 +91,7 @@ isDirectory' key = fmap (== Directory) . queryObjectType' key
 isLink' key acidDb = case queryObjectType' key acidDb of
                        (Done (Link _)) -> Done True
                        (Failed e)      -> Failed e
-                       _               -> Failed $ ErrorMessage "Not a Link"
+                       _               -> Failed NotALink
 
 
 createObject :: ObjectName
@@ -115,7 +116,7 @@ createObject objectName_ parentBucketId_ parentObjectId_ objectType_ = do
     Failed e -> return $ Failed e
     Done childObjects_ ->
       if statusToBool $ queryBy objectName_ childObjects_
-        then return . Failed $ ErrorMessage "Object-name exists"
+        then return $ Failed NameExists
         else do
         let updatedAcidDB =
               acidDb { objects = (\(_, objectSet) ->
@@ -128,5 +129,13 @@ createObject objectName_ parentBucketId_ parentObjectId_ objectType_ = do
         put updatedAcidDB
         return $ Done maxIndex_
 
-
-  
+-- ! FixMe !
+-- createFileObject :: ObjectName
+--                  -> BucketId
+--                  -> Maybe ObjectId
+--                  -> UTCTime
+--                  -> DBL.ByteString
+--                  -> Update AcidDB (Status ObjectId)
+-- createFileObject name bId pId time fData = do
+--   oId <- createObject name bId pId File
+--   createFileData oId time fData

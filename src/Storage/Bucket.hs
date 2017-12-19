@@ -21,7 +21,7 @@ createBucket :: BucketName -> Update AcidDB (Status BucketId)
 createBucket bucketName_ = do
   acidDb <- get
   if statusToBool $ queryBucketByName' bucketName_ acidDb then
-    return . Failed $ ErrorMessage "Bucket exists"
+    return $ Failed NameExists
     else do
     let dbIndexInfo = fst $ buckets acidDb
     let maxIndex_ = getMaxIndex dbIndexInfo
@@ -54,7 +54,7 @@ updateBucket bucket@Bucket{..} = do
                  }
     put updatedAcidDB
     return $ Done ()
-    else return . Failed $ ErrorMessage "Bucket does not exist"
+    else return $ Failed NotFound
 
 queryAllBuckets' :: AcidDB -> Status (IX.IxSet Bucket)
 queryAllBuckets' = Done . snd . buckets

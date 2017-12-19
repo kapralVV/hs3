@@ -13,8 +13,13 @@ import Data.SafeCopy
 import Data.Text (Text)
 
 
-newtype ErrorMessage = ErrorMessage Text
-                     deriving (Show,Eq, Generic, Typeable, Data)
+data ErrorMessage = ErrorMessage Text
+                  | NameExists
+                  | NotFound
+                  | NotAFile
+                  | NotALink
+                  | NotADirectory
+                  deriving (Show,Eq, Generic, Typeable, Data)
 instance ToJSON ErrorMessage
 instance FromJSON ErrorMessage
 $(deriveSafeCopy 0 'base ''ErrorMessage)
@@ -41,7 +46,7 @@ instance  Monad Status where
   Failed e >>= _ = Failed e
 
 maybeToStatus :: Maybe a -> Status a
-maybeToStatus Nothing  = Failed $ ErrorMessage "Not Found"
+maybeToStatus Nothing  = Failed NotFound
 maybeToStatus (Just a) = Done a
 
 statusToBool :: Status a -> Bool
