@@ -11,6 +11,7 @@ import Control.Monad.Reader
 import qualified Data.IxSet                 as IX
 import qualified Data.ByteString.Lazy       as DBL
 import Control.Applicative
+import Control.Monad (mapM)
 import Data.Time.Clock
 
 import Types.FileSystem
@@ -86,12 +87,17 @@ queryChidFiles :: ObjectId -> Query AcidDB (Status (IX.IxSet FileData))
 queryChidFiles key = queryChidFiles' key `fmap` ask
 
 isFile', isDirectory', isLink' :: ObjectId -> AcidDB -> Status Bool
-isFile'      key = fmap (== File)      . queryObjectType' key
-isDirectory' key = fmap (== Directory) . queryObjectType' key
+isFile'      key   = fmap (== File)      . queryObjectType' key
+isDirectory' key   = fmap (== Directory) . queryObjectType' key
 isLink' key acidDb = case queryObjectType' key acidDb of
                        (Done (Link _)) -> Done True
                        (Failed e)      -> Failed e
                        _               -> Failed NotALink
+
+isFile, isDirectory, isLink :: ObjectId -> Query AcidDB (Status Bool)
+isFile key      = isFile' key `fmap` ask
+isDirectory key = isDirectory' key `fmap` ask
+isLink key      = isLink' key `fmap` ask
 
 
 createObject :: ObjectName
@@ -129,13 +135,68 @@ createObject objectName_ parentBucketId_ parentObjectId_ objectType_ = do
         put updatedAcidDB
         return $ Done maxIndex_
 
--- ! FixMe !
--- createFileObject :: ObjectName
---                  -> BucketId
---                  -> Maybe ObjectId
---                  -> UTCTime
---                  -> DBL.ByteString
---                  -> Update AcidDB (Status ObjectId)
--- createFileObject name bId pId time fData = do
---   oId <- createObject name bId pId File
---   createFileData oId time fData
+createFileObject, createDirectoryObject
+  :: ObjectName
+  -> BucketId
+  -> Maybe ObjectId
+  -> Update AcidDB (Status ObjectId)
+createFileObject name bId pId = createObject name bId pId File
+
+addFileDataToFile :: ObjectId
+                  -> UTCTime
+                  -> DBL.ByteString
+                  -> Update AcidDB (Status FileId)
+addFileDataToFile oId time fData = do
+  statusIsFile <- liftQuery $ isFile oId
+  case statusIsFile of
+    Done True  -> createFileData oId time fData
+    Done False -> return $ Failed NotAFile
+    Failed e   -> return $ Failed e
+
+createDirectoryObject name bId pId = createObject name bId pId Directory
+
+createLinkObject
+  :: ObjectName
+  -> BucketId
+  -> Maybe ObjectId
+  -> ObjectId      -- linked object
+  -> Update AcidDB (Status ObjectId)
+createLinkObject name bId pId oId = createObject name bId pId (Link oId)
+
+-- Generic function does not check whether object has children
+-- and do not remove them recursively
+deleteObjectGeneric :: ObjectId -> Update AcidDB (Status ())
+deleteObjectGeneric oId = do
+  acidDb <- get
+  if statusToBool $ queryObjectById' oId acidDb then do
+    let updatedAcidDB =
+          acidDb { objects = (\(dbIndexInfo, objectsSet) ->
+                                 ( DbIndexInfo { maxIndex = maxIndex dbIndexInfo
+                                               , holes = oId : holes dbIndexInfo
+                                               }
+                                 , IX.deleteIx oId objectsSet
+                                 )
+                             )
+                             $ objects acidDb
+                 }
+    put updatedAcidDB
+
+    return $ Done ()
+    else
+    return $ Failed NotFound
+
+-- TODO : Move to higher level 
+{-
+deleteObject :: ObjectId -> Update AcidDB (Status ())
+deleteObject oId = do
+  acidDb <- get
+  let statusObject = queryObjectById' oId acidDb
+  case statusObject of
+    Failed e   -> return $ Failed e
+    Done object@Object{..} | statusToBool (isFile' objectId acidDb) -> do
+                               deleteFileDataErrors <- (queryChidFiles' objectId acidDb
+                                                         >>= mapM deleteFileData . map fileId . IX.toList)
+                               if not $ null deleteFileDataErrors then
+                                 return $ Failed "Cannot remove all FileData set to File-Object"
+                                 else deleteObjectGeneric objectId
+-}

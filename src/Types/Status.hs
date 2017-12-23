@@ -60,3 +60,10 @@ statusToBool' (Failed x) = Failed x
 fromStatus :: Status a -> a
 fromStatus (Done a)   = a
 fromStatus (Failed _) = error "fromStatus: Failed"
+
+getErrorMessage :: Status a -> ErrorMessage
+getErrorMessage (Failed e) = e
+getErrorMessage _          = error "getErrorMessage : cannot get ErrorMessage"
+
+getErrorMessages :: [Status a] -> [ErrorMessage]
+getErrorMessages = map getErrorMessage . filter (not . statusToBool)
