@@ -11,7 +11,6 @@ import Tests.Storage.ArbitraryInstances
 
 import Data.Acid
 import Data.Acid.Advanced
-import Data.List.Unique (allUnique)
 import Test.QuickCheck
 import Test.QuickCheck.Monadic
 import qualified Data.IxSet  as IX
@@ -21,10 +20,10 @@ import Tests.Generic
 import Test.Hspec
 
 
-prop_createObjectInRoot :: AcidState AcidDB -> ObjectName -> ObjectType -> Property
-prop_createObjectInRoot db name oType = monadicIO $ do
+prop_createDirObjectInRoot :: AcidState AcidDB -> ObjectName -> Property
+prop_createDirObjectInRoot db name = monadicIO $ do
   bId <- run $ genBucketId db
-  oId <- run . update' db $ CreateObject name bId Nothing oType
+  oId <- run . update' db $ CreateDirectoryObject name bId Nothing
   assert (statusToBool oId || (Failed $ ErrorMessage "Object-name exists") == oId)
 
 objectTests :: Spec
@@ -34,6 +33,6 @@ objectTests = do
       describe "Test Object:" $ do
 
         it "Run auto generation of objects" $
-          \db -> property $ prop_createObjectInRoot db
+          \db -> property $ prop_createDirObjectInRoot db
 
 

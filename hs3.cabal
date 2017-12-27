@@ -73,6 +73,5 @@ Test-Suite Tests
                      , QuickCheck
                      , quickcheck-text
                      , hspec
-                     , hspec-expectations
                      , aeson-pretty
                      , Unique
