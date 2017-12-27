@@ -86,6 +86,13 @@ queryChidFiles' key acidDb = case queryObjectType' key acidDb of
 queryChidFiles :: ObjectId -> Query AcidDB (Status (IX.IxSet FileData))
 queryChidFiles key = queryChidFiles' key `fmap` ask
 
+isFile'', isDirectory'', isLink'' :: Object -> Bool
+isFile''      = (==) File . objectType
+isDirectory'' = (==) Directory . objectType
+isLink'' obj  = case objectType obj of
+                  Link _ -> True
+                  _      -> False
+
 isFile', isDirectory', isLink' :: ObjectId -> AcidDB -> Status Bool
 isFile'      key   = fmap (== File)      . queryObjectType' key
 isDirectory' key   = fmap (== Directory) . queryObjectType' key
@@ -118,22 +125,20 @@ createObject objectName_ parentBucketId_ parentObjectId_ objectType_ = do
                          }
 
   let childObjects = queryChildObjects' parentBucketId_ parentObjectId_ acidDb
-  case childObjects of
-    Failed e -> return $ Failed e
-    Done childObjects_ ->
-      if statusToBool $ queryBy objectName_ childObjects_
-        then return $ Failed NameExists
-        else do
-        let updatedAcidDB =
-              acidDb { objects = (\(_, objectSet) ->
-                                    (updateIndexInfo dbIndexInfo
-                                    , IX.insert newObject objectSet
-                                    )
-                                 )
-                                 $ objects acidDb
-                     }
-        put updatedAcidDB
-        return $ Done maxIndex_
+  whenDone childObjects $ \childObjects_ -> do
+    if statusToBool $ queryBy objectName_ childObjects_
+      then return $ Failed NameExists
+      else do
+      let updatedAcidDB =
+            acidDb { objects = (\(_, objectSet) ->
+                                   (updateIndexInfo dbIndexInfo
+                                   , IX.insert newObject objectSet
+                                   )
+                               )
+                               $ objects acidDb
+                   }
+      put updatedAcidDB
+      return $ Done maxIndex_
 
 createFileObject, createDirectoryObject
   :: ObjectName
@@ -185,18 +190,27 @@ deleteObjectGeneric oId = do
     else
     return $ Failed NotFound
 
--- TODO : Move to higher level 
-{-
 deleteObject :: ObjectId -> Update AcidDB (Status ())
 deleteObject oId = do
   acidDb <- get
   let statusObject = queryObjectById' oId acidDb
   case statusObject of
     Failed e   -> return $ Failed e
-    Done object@Object{..} | statusToBool (isFile' objectId acidDb) -> do
-                               deleteFileDataErrors <- (queryChidFiles' objectId acidDb
-                                                         >>= mapM deleteFileData . map fileId . IX.toList)
-                               if not $ null deleteFileDataErrors then
-                                 return $ Failed "Cannot remove all FileData set to File-Object"
-                                 else deleteObjectGeneric objectId
--}
+    Done object
+      | isFile'' object -> do
+          let childrenFileIds = fmap (map fileId . IX.toList) $ queryChidFiles' (objectId object) acidDb
+          whenDone childrenFileIds $ \childrenFileIds' -> do
+            deleteFileDataErrors <- mapM deleteFileData childrenFileIds'
+            if not $ null deleteFileDataErrors then
+              return . Failed $ ErrorMessage "Cannot remove all child FileData set"
+              else deleteObjectGeneric (objectId object)
+      | isDirectory'' object -> do
+          let childrenObjectIds = fmap (map objectId . IX.toList) . liftA2 queryChildObjects' parentBucketId parentObjectId object $ acidDb
+          whenDone childrenObjectIds $ \childrenObjectIds' -> do
+            deleteObjectsErrors <- mapM deleteObject childrenObjectIds'
+            if not $ null deleteObjectsErrors then
+              return . Failed $ ErrorMessage "Cannot remove all child Objects set"
+              else deleteObjectGeneric (objectId object)
+      | isLink'' object ->
+          deleteObjectGeneric (objectId object)
+      | otherwise -> return . Failed $ ErrorMessage "This case is not possible until you add new ObjectType"

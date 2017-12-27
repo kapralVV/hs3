@@ -1,7 +1,9 @@
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE RankNTypes                 #-}
+{-# LANGUAGE KindSignatures             #-}
 
 
 module Types.Status where
@@ -67,3 +69,10 @@ getErrorMessage _          = error "getErrorMessage : cannot get ErrorMessage"
 
 getErrorMessages :: [Status a] -> [ErrorMessage]
 getErrorMessages = map getErrorMessage . filter (not . statusToBool)
+
+whenDone :: forall t (m :: * -> *) a.
+            Monad m =>
+            Status t -> (t -> m (Status a)) -> m (Status a)
+whenDone x m = case x of
+                 Done y   -> m y
+                 Failed e -> return $ Failed e
