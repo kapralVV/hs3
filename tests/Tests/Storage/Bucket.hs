@@ -24,13 +24,13 @@ import Test.Hspec
 prop_createBucket :: AcidState AcidDB -> BucketName -> Property
 prop_createBucket db name = monadicIO $ do
   bId <- run . update' db $ CreateBucket name
-  assert (statusToBool bId || (Failed $ ErrorMessage "Bucket exists") == bId)
+  assert (statusToBool bId || (Failed NameExists) == bId)
 
 bucketTests :: Spec
 bucketTests = do
   beforeAll (openLocalStateFrom "test-state" initAcidDB) $ do
     afterAll closeAcidState $ do
-      describe "Test Buckets in storage" $ do
+      describe "Test Buckets: " $ do
 
         it "Create bucket manually" $ do
           \db -> update' db (CreateBucket (BucketName "test")) `shouldReturn` Done (BucketId 1)
@@ -44,7 +44,7 @@ bucketTests = do
                       )
 
         it "It's not possible to create bucket with the same name" $ do
-          \db -> update' db (CreateBucket (BucketName "test")) `shouldReturn` Failed (ErrorMessage ("Bucket exists"))
+          \db -> update' db (CreateBucket (BucketName "test")) `shouldReturn` Failed NameExists
 
         it "Run auto generation of buckets" $
           \db -> property $ prop_createBucket db
