@@ -31,7 +31,6 @@ prop_createDirObjectInRoot db name = monadicIO $ do
   oId <- run . update' db $ CreateDirectoryObject name bId Nothing
   assert (statusToBool oId || (Failed NameExists) == oId)
 
-
 prop_createDirsInDirs :: AcidState AcidDB -> ObjectName -> Property
 prop_createDirsInDirs db name = monadicIO $ do
   (bId,dId) <- run $ genDirectoryObjId db
@@ -41,8 +40,22 @@ prop_createDirsInDirs db name = monadicIO $ do
 prop_createEmptyFilesInDirs :: AcidState AcidDB -> ObjectName -> Property
 prop_createEmptyFilesInDirs db name = monadicIO $ do
   (bId,dId) <- run $ genDirectoryObjId db
-  oId <- run . update' db $ CreateFileObject name bId dId
+  oId  <- run . update' db $ CreateFileObject name bId dId
   assert (statusToBool oId || (Failed NameExists) == oId)
+
+prop_createLinkObject :: AcidState AcidDB -> ObjectName -> Property
+prop_createLinkObject db name = monadicIO $ do
+  (bId,dId) <- run $ genDirectoryObjId db
+  fId       <- run $ genFileObjId db
+  oId  <- run . update' db $ CreateLinkObject name bId dId fId
+  assert (statusToBool oId || (Failed NameExists) == oId)
+
+prop_deleteObjects :: AcidState AcidDB -> Property
+prop_deleteObjects db = monadicIO $ do
+  oId    <- run $ genObjectId db
+  status <- run . update' db $ DeleteObject oId
+  assert $ statusToBool status
+  
 
 objectTests :: Spec
 objectTests = do
@@ -72,6 +85,16 @@ objectTests = do
         it "Creating FileObject under FileObject should fail" $ do
           \db -> (genFileObjId db >>= (update' db . CreateFileObject (ObjectName "failed") (BucketId 1) . Just))
                  `shouldReturn` Failed NotADirectory
+
+        it "Run auto generation of Link objects" $
+          \db -> property $ prop_createLinkObject db
+
+        it "Creating FileObject under LinkObject should fail" $ do
+          \db -> (genLinkObjId db >>= (update' db . CreateFileObject (ObjectName "failed") (BucketId 1) . Just))
+                 `shouldReturn` Failed NotADirectory
+
+        -- it "Run auto deleting objects" $
+        --   \db -> property $ prop_deleteObjects db
 
         it "Query all Objects and generate json output" $
           \db -> (query' db QueryAllObjects >>= DBL.putStr . encodePretty)

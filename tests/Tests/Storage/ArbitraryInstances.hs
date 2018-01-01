@@ -61,6 +61,15 @@ genDirectoryObjId db = (fmap (oneof . map (return . liftA2 (,) parentBucketId (J
                                . filter isDirectory'' . IX.toList . fromStatus)
                         $ query' db QueryAllObjects) >>= generate
 
+genObjectIdPred :: AcidState AcidDB -> (Object -> Bool) -> IO ObjectId
+genObjectIdPred db p = (fmap (oneof . map (return . objectId) . filter p . IX.toList . fromStatus)
+                       $ query' db QueryAllObjects) >>= generate
+
+genObjectId :: AcidState AcidDB -> IO ObjectId
+genObjectId db = genObjectIdPred db (const True)
+
 genFileObjId :: AcidState AcidDB -> IO ObjectId
-genFileObjId db = (fmap (oneof . map (return . objectId) . filter isFile'' . IX.toList . fromStatus)
-                   $ query' db QueryAllObjects) >>= generate
+genFileObjId db = genObjectIdPred db isFile''
+  
+genLinkObjId :: AcidState AcidDB -> IO ObjectId
+genLinkObjId db = genObjectIdPred db isLink''
