@@ -2,6 +2,7 @@ module Tests.Storage.ArbitraryInstances where
 
 import Types.FileSystem
 import Storage.AcidDB
+import Storage.Object
 import Types.Status
 
 import Data.Typeable
@@ -33,10 +34,6 @@ instance (Ord a, Arbitrary a, Typeable a, IX.Indexable a) => Arbitrary (IX.IxSet
     k <- choose (0,5)
     fmap IX.fromList (vectorOf k arbitrary)
 
-genBucketId :: AcidState AcidDB -> IO BucketId
-genBucketId db = (fmap (oneof . map (return . bucketId) . IX.toList . fromStatus)
-                   $ query' db QueryAllBuckets) >>= generate
-  
 instance Arbitrary ObjectId where
   arbitrary = fmap ObjectId $ choose (1,1000)
 
@@ -54,3 +51,16 @@ instance Arbitrary ObjectType where
                     , pure Directory
                     , pure File
                     ]
+
+genBucketId :: AcidState AcidDB -> IO BucketId
+genBucketId db = (fmap (oneof . map (return . bucketId) . IX.toList . fromStatus)
+                   $ query' db QueryAllBuckets) >>= generate
+
+genDirectoryObjId :: AcidState AcidDB -> IO (BucketId, Maybe ObjectId)
+genDirectoryObjId db = (fmap (oneof . map (return . liftA2 (,) parentBucketId (Just . objectId))
+                               . filter isDirectory'' . IX.toList . fromStatus)
+                        $ query' db QueryAllObjects) >>= generate
+
+genFileObjId :: AcidState AcidDB -> IO ObjectId
+genFileObjId db = (fmap (oneof . map (return . objectId) . filter isFile'' . IX.toList . fromStatus)
+                   $ query' db QueryAllObjects) >>= generate

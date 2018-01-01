@@ -20,6 +20,7 @@ import Types.AcidDB
 import Types.Status
 import Storage.Generic
 import Storage.FileData
+import Storage.Bucket
 
 queryAllObjects' :: AcidDB -> IX.IxSet Object
 queryAllObjects' = snd . objects
@@ -58,7 +59,7 @@ queryObjectName :: ObjectId -> Query AcidDB (Status ObjectName)
 queryObjectName key = queryObjectName' key `fmap` ask
 
 queryChildObjects'' :: BucketId -> Maybe ObjectId -> AcidDB -> IX.IxSet Object
-queryChildObjects'' bid pob acidDb = queryAllObjects' acidDb IX.@= bid IX.@= pob
+queryChildObjects'' bid pob acidDb = (queryAllObjects' acidDb) IX.@= bid IX.@= pob
 
 queryChildObjects' :: BucketId -> Maybe ObjectId -> AcidDB -> Status (IX.IxSet Object)
 queryChildObjects' bid pob@(Just x) acidDb =
@@ -66,7 +67,10 @@ queryChildObjects' bid pob@(Just x) acidDb =
     Done True    -> Done $  queryChildObjects'' bid pob acidDb
     Done False   -> Failed NotADirectory
     Failed e     -> Failed e
-queryChildObjects' bid Nothing acidDb = Done $ queryChildObjects'' bid Nothing acidDb
+queryChildObjects' bid Nothing acidDb =
+  case queryBucketById' bid acidDb of
+    Done _    -> Done $ queryChildObjects'' bid Nothing acidDb
+    Failed e  -> Failed e
 
 queryChildObjects :: BucketId -> Maybe ObjectId -> Query AcidDB (Status (IX.IxSet Object))
 queryChildObjects bid pod = queryChildObjects' bid pod `fmap` ask
@@ -146,6 +150,7 @@ createFileObject, createDirectoryObject
   -> Maybe ObjectId
   -> Update AcidDB (Status ObjectId)
 createFileObject name bId pId = createObject name bId pId File
+createDirectoryObject name bId pId = createObject name bId pId Directory
 
 addFileDataToFile :: ObjectId
                   -> UTCTime
@@ -157,8 +162,6 @@ addFileDataToFile oId time fData = do
     Done True  -> createFileData oId time fData
     Done False -> return $ Failed NotAFile
     Failed e   -> return $ Failed e
-
-createDirectoryObject name bId pId = createObject name bId pId Directory
 
 createLinkObject
   :: ObjectName
