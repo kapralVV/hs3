@@ -16,6 +16,9 @@ import Test.QuickCheck
 import Test.QuickCheck.Monadic
 import qualified Data.IxSet  as IX
 import qualified Data.Set    as DS
+import Data.Aeson.Encode.Pretty
+import qualified Data.ByteString.Lazy as DBL
+import Other.IxSetAeson
 
 import Tests.Generic
 import Test.Hspec
@@ -61,3 +64,16 @@ bucketTests = do
           \db -> (fmap (DS.findMax . DS.map bucketId . IX.toSet . fromStatus) $ query' db QueryAllBuckets)
                  `compareIoActions`
                  (fmap maxIndex $ query' db QueryBucketIndex)
+
+        it "Delete bucket with index '1' from storage" $ do
+          \db -> update' db (DeleteBucketGeneric (BucketId 1)) `shouldReturn` Done ()
+
+        it "Check index <holes> to find the index of just deleted Bucket" $ do
+          \db -> fmap holes (query' db QueryBucketIndex) `shouldReturn` [(BucketId 1)]
+
+        it "Add new Bucket again. It should have '1' index" $ do
+          \db -> update' db (CreateBucket (BucketName "New test")) `shouldReturn` Done (BucketId 1)
+
+        it "Query All Buckets and generate json output" $ do
+          \db -> (query' db QueryAllBuckets >>= DBL.putStr . encodePretty)
+            `shouldReturn` ()

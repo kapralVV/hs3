@@ -56,6 +56,27 @@ updateBucket bucket@Bucket{..} = do
     return $ Done ()
     else return $ Failed NotFound
 
+-- it does not check if child objects exist
+deleteBucketGeneric :: BucketId -> Update AcidDB (Status ())
+deleteBucketGeneric bId = do
+  acidDb <- get
+  if statusToBool $ queryBucketById' bId acidDb then do
+    let updatedAcidDB =
+          acidDb { buckets = (\(dbIndexInfo, bucketSet) ->
+                               ( DbIndexInfo { maxIndex = maxIndex dbIndexInfo
+                                             , holes = bId : holes dbIndexInfo
+                                             }
+                               , IX.deleteIx bId bucketSet
+                               )
+                           )
+                           $ buckets acidDb
+                 }
+    put updatedAcidDB
+    return $ Done ()
+
+    else
+    return $ Failed NotFound
+
 queryAllBuckets' :: AcidDB -> Status (IX.IxSet Bucket)
 queryAllBuckets' = Done . snd . buckets
 
