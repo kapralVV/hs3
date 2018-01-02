@@ -74,6 +74,6 @@ bucketTests = do
         it "Add new Bucket again. It should have '1' index" $ do
           \db -> update' db (CreateBucket (BucketName "New test")) `shouldReturn` Done (BucketId 1)
 
-        it "Query All Buckets and generate json output" $ do
-          \db -> (query' db QueryAllBuckets >>= DBL.putStr . encodePretty)
-            `shouldReturn` ()
+        -- it "Query All Buckets and generate json output" $ do
+        --   \db -> (query' db QueryAllBuckets >>= DBL.putStr . encodePretty)
+        --     `shouldReturn` ()

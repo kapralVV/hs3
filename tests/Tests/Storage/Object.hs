@@ -97,5 +97,5 @@ objectTests = do
         --   \db -> property $ prop_deleteObjects db
 
         it "Query all Objects and generate json output" $
-          \db -> (query' db QueryAllObjects >>= DBL.putStr . encodePretty)
+          \db -> (query' db QueryAllBucketsForJson >>= DBL.putStr . encodePretty)
             `shouldReturn` ()
