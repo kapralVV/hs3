@@ -21,6 +21,7 @@ data ErrorMessage = ErrorMessage Text
                   | NotAFile
                   | NotALink
                   | NotADirectory
+                  | NotAllowed
                   deriving (Show,Eq, Generic, Typeable, Data)
 instance ToJSON ErrorMessage
 instance FromJSON ErrorMessage

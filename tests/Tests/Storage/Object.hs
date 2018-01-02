@@ -13,6 +13,7 @@ import Data.Acid
 import Data.Acid.Advanced
 import Test.QuickCheck
 import Test.QuickCheck.Monadic
+import Control.Applicative (liftA2)
 import qualified Data.IxSet  as IX
 import qualified Data.Set    as DS
 
@@ -46,7 +47,7 @@ prop_createEmptyFilesInDirs db name = monadicIO $ do
 prop_createLinkObject :: AcidState AcidDB -> ObjectName -> Property
 prop_createLinkObject db name = monadicIO $ do
   (bId,dId) <- run $ genDirectoryObjId db
-  fId       <- run $ genFileObjId db
+  fId       <- run $ genObjectIdPred db (\b -> (parentBucketId b) == bId)
   oId  <- run . update' db $ CreateLinkObject name bId dId fId
   assert (statusToBool oId || (Failed NameExists) == oId)
 
@@ -60,7 +61,7 @@ prop_deleteObjects db = monadicIO $ do
 objectTests :: Spec
 objectTests = do
   beforeAll (openLocalStateFrom "test-state" initAcidDB) $ do
-    afterAll closeAcidState $ do
+    afterAll (liftA2 (>>) createCheckpoint closeAcidState) $ do
       describe "Test Object: " $ do
 
         it "Run auto generation of Dir objects under bucket root" $
@@ -89,12 +90,16 @@ objectTests = do
         it "Run auto generation of Link objects" $
           \db -> property $ prop_createLinkObject db
 
-        it "Creating FileObject under LinkObject should fail" $ do
-          \db -> (genLinkObjId db >>= (update' db . CreateFileObject (ObjectName "failed") (BucketId 1) . Just))
-                 `shouldReturn` Failed NotADirectory
+        -- it "Creating FileObject under LinkObject should fail" $ do
+        --   \db -> (genLinkObjId db >>= (update' db . CreateFileObject (ObjectName "failed") (BucketId 1) . Just))
+        --          `shouldReturn` Failed NotADirectory
 
         -- it "Run auto deleting objects" $
         --   \db -> property $ prop_deleteObjects db
+
+        it "Creating Link for object is located in other bucket should not be allowed" $ do
+          \db -> (update' db $ CreateLinkObject (ObjectName "LINK") (BucketId 1) Nothing (ObjectId 100))
+                 `shouldReturn` Failed NotAllowed
 
         it "Query all Objects and generate json output" $
           \db -> (query' db QueryAllBucketsForJson >>= DBL.putStr . encodePretty)

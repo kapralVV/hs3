@@ -169,7 +169,12 @@ createLinkObject
   -> Maybe ObjectId
   -> ObjectId      -- linked object
   -> Update AcidDB (Status ObjectId)
-createLinkObject name bId pId oId = createObject name bId pId (Link oId)
+createLinkObject name bId pId oId = do
+  lObject <- liftQuery $ queryObjectById oId
+  whenDone lObject $ \lObj -> do
+    if parentBucketId lObj == bId then
+      createObject name bId pId (Link oId)
+      else return $ Failed NotAllowed
 
 -- Generic function does not check whether object has children
 -- and do not remove them recursively
