@@ -87,7 +87,7 @@ objectTests = do
           \db -> (genFileObjId db >>= (update' db . CreateFileObject (ObjectName "failed") (BucketId 1) . Just))
                  `shouldReturn` Failed NotADirectory
 
-        modifyMaxSuccess (const 5) $ it "Run auto generation of Link objects" $
+        modifyMaxSuccess (const 200) $ it "Run auto generation of Link objects" $
           \db -> property $ prop_createLinkObject db
 
         it "Creating FileObject under LinkObject should fail" $ do
