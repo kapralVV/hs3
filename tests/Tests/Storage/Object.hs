@@ -7,7 +7,7 @@ import Types.DbIndexInfo
 import Types.AcidDB
 import Types.Status
 import Storage.AcidDB
-import Tests.Storage.ArbitraryInstances
+import Tests.Storage.GenTestData
 
 import Data.Time
 import Data.Acid
@@ -20,12 +20,10 @@ import qualified Data.Set    as DS
 
 import Data.Aeson.Encode.Pretty
 import qualified Data.ByteString.Lazy as DBL
-import Other.IxSetAeson
 
-import Tests.Generic
 import Test.Hspec
 import Test.Hspec.QuickCheck
-import Test.QuickCheck.Instances
+import Test.QuickCheck.Instances ()
 
 
 prop_createDirObjectInRoot :: AcidState AcidDB -> ObjectName -> Property
@@ -75,6 +73,14 @@ objectTests = do
     afterAll (liftA2 (>>) createCheckpoint closeAcidState) $ do
       describe "Test Object: " $ do
 
+        it "Create Dir object under bucket root manually" $ do
+          \db -> (update' db $ CreateDirectoryObject (ObjectName "Directory") (BucketId 1) Nothing)
+                 `shouldReturn` Done (ObjectId 1)
+
+        it "Creating any object with the same ObjectName should fail" $ do
+          \db -> (update' db $ CreateFileObject (ObjectName "Directory") (BucketId 1) Nothing)
+                 `shouldReturn` Failed NameExists
+
         it "Run auto generation of Dir objects under bucket root" $
           \db -> property $ prop_createDirObjectInRoot db
 
@@ -98,6 +104,14 @@ objectTests = do
           \db -> (genFileObjId db >>= (update' db . CreateFileObject (ObjectName "failed") (BucketId 1) . Just))
                  `shouldReturn` Failed NotADirectory
 
+        it "Creating Link for Directory to itself should fail" $ do
+          \db -> (update' db $ CreateLinkObject (ObjectName "Link") (BucketId 1) (Just $ ObjectId 1) (ObjectId 1))
+                 `shouldReturn` Failed NotAllowed
+
+        it "Creating Link to object in another bucket should fail" $ do
+          \db -> (update' db $ CreateLinkObject (ObjectName "Link") (BucketId 2) Nothing (ObjectId 1))
+                 `shouldReturn` Failed NotAllowed
+
         modifyMaxSuccess (const 200) $ it "Run auto generation of Link objects" $
           \db -> property $ prop_createLinkObject db
 
@@ -105,14 +119,18 @@ objectTests = do
           \db -> (genLinkObjId db >>= (update' db . CreateFileObject (ObjectName "failed") (BucketId 1) . Just))
                 `shouldReturn` Failed NotADirectory
 
+        -- it "Delete the Object manually" $ do
+        --   \db -> (update' db $ DeleteObject (ObjectId 1))
+        --          `shouldReturn` Done ()
+
         -- it "Run auto deleting objects" $
         --   \db -> property $ prop_deleteObjects db
 
-        it "Creating Link for object is located in other bucket should not be allowed" $ do
-          \db -> (update' db $ CreateLinkObject (ObjectName "LINK") (BucketId 1) Nothing (ObjectId 100))
-                 `shouldReturn` Failed NotAllowed
+        it "Creating FileData for non-File object should fail" $ do
+          \db -> ( getCurrentTime >>= (\time -> update' db $ AddFileDataToFile (ObjectId 1) time "Test data")
+                 ) `shouldReturn` Failed NotAFile
 
-        it "Run auto generating FileData" $
+        modifyMaxSuccess (const 1000) $ it "Run auto generating FileData" $
           \db -> property $ prop_addFileDataToFile db
 
         it "Query all Objects and generate json output" $

@@ -11,7 +11,6 @@ import Control.Monad.Reader
 import qualified Data.IxSet                 as IX
 import qualified Data.ByteString.Lazy       as DBL
 import Control.Applicative
-import Control.Monad (mapM)
 import Data.Time.Clock
 
 import Types.FileSystem
@@ -59,7 +58,7 @@ queryObjectName :: ObjectId -> Query AcidDB (Status ObjectName)
 queryObjectName key = queryObjectName' key `fmap` ask
 
 queryChildObjects'' :: BucketId -> Maybe ObjectId -> AcidDB -> IX.IxSet Object
-queryChildObjects'' bid pob acidDb = (queryAllObjects' acidDb) IX.@= bid IX.@= pob
+queryChildObjects'' bid pob acidDb = queryAllObjects' acidDb IX.@= bid IX.@= pob
 
 queryChildObjects' :: BucketId -> Maybe ObjectId -> AcidDB -> Status (IX.IxSet Object)
 queryChildObjects' bid pob@(Just x) acidDb =
@@ -129,7 +128,7 @@ createObject objectName_ parentBucketId_ parentObjectId_ objectType_ = do
                          }
 
   let childObjects = queryChildObjects' parentBucketId_ parentObjectId_ acidDb
-  whenDone childObjects $ \childObjects_ -> do
+  whenDone childObjects $ \childObjects_ ->
     if statusToBool $ queryBy objectName_ childObjects_
       then return $ Failed NameExists
       else do
@@ -171,8 +170,8 @@ createLinkObject
   -> Update AcidDB (Status ObjectId)
 createLinkObject name bId pId oId = do
   lObject <- liftQuery $ queryObjectById oId
-  whenDone lObject $ \lObj -> do
-    if parentBucketId lObj == bId && pId /= (Just oId) then
+  whenDone lObject $ \lObj ->
+    if parentBucketId lObj == bId && pId /= Just oId then
       createObject name bId pId (Link oId)
       else return $ Failed NotAllowed
 
@@ -206,7 +205,7 @@ deleteObject oId = do
     Failed e   -> return $ Failed e
     Done object
       | isFile'' object -> do
-          let childrenFileIds = fmap (map fileId . IX.toList) $ queryChidFiles' (objectId object) acidDb
+          let childrenFileIds = (map fileId . IX.toList) <$> queryChidFiles' (objectId object) acidDb
           whenDone childrenFileIds $ \childrenFileIds' -> do
             deleteFileDataErrors <- mapM deleteFileData childrenFileIds'
             if not $ null deleteFileDataErrors then

@@ -7,7 +7,7 @@ import Types.DbIndexInfo
 import Types.AcidDB
 import Types.Status
 import Storage.AcidDB
-import Tests.Storage.ArbitraryInstances()
+import Tests.Storage.GenTestData()
 
 import Data.Acid
 import Data.Acid.Advanced
@@ -16,9 +16,6 @@ import Test.QuickCheck
 import Test.QuickCheck.Monadic
 import qualified Data.IxSet  as IX
 import qualified Data.Set    as DS
-import Data.Aeson.Encode.Pretty
-import qualified Data.ByteString.Lazy as DBL
-import Other.IxSetAeson
 
 import Tests.Generic
 import Test.Hspec
@@ -70,11 +67,7 @@ bucketTests = do
           \db -> update' db (DeleteBucketGeneric (BucketId 1)) `shouldReturn` Done ()
 
         it "Check index <holes> to find the index of just deleted Bucket" $ do
-          \db -> fmap holes (query' db QueryBucketIndex) `shouldReturn` [(BucketId 1)]
+          \db -> fmap holes (query' db QueryBucketIndex) `shouldReturn` [BucketId 1]
 
         it "Add new Bucket again. It should have '1' index" $ do
           \db -> update' db (CreateBucket (BucketName "New test")) `shouldReturn` Done (BucketId 1)
-
-        -- it "Query All Buckets and generate json output" $ do
-        --   \db -> (query' db QueryAllBuckets >>= DBL.putStr . encodePretty)
-        --     `shouldReturn` ()

@@ -56,7 +56,7 @@ objectToJson db Object{..} =
   , typeJson =
       case objectType of
         File      -> FileJson . DS.map fileId $ IX.toSet (queryAllFiles' db IX.@= objectId)
-        Directory -> DirectoryJson . DS.map (objectToJson db) $ IX.toSet (queryAllObjects' db IX.@= (Just objectId))
+        Directory -> DirectoryJson . DS.map (objectToJson db) $ IX.toSet (queryAllObjects' db IX.@= Just objectId)
         Link oId  -> LinkJson . objectToJson db . fromStatus $ queryObjectById' oId db
   }
 
