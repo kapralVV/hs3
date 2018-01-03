@@ -49,9 +49,9 @@ prop_addFileDataToFile :: AcidState AcidDB
                        -> DBL.ByteString
                        -> Property
 prop_addFileDataToFile db time bstring = monadicIO $ do
-  oId <- run $ genFileObjId db
+  oId <- run $ genObjectId db
   fId <- run . update' db $ AddFileDataToFile oId time bstring
-  assert $ statusToBool fId
+  assert (statusToBool fId || (Failed NotAFile) == fId)
 
 prop_createLinkObject :: AcidState AcidDB -> ObjectName -> Property
 prop_createLinkObject db name = monadicIO $ do
@@ -80,6 +80,18 @@ objectTests = do
         it "Creating any object with the same ObjectName should fail" $ do
           \db -> (update' db $ CreateFileObject (ObjectName "Directory") (BucketId 1) Nothing)
                  `shouldReturn` Failed NameExists
+
+        it "Create File object under Directory manually" $ do
+          \db -> (update' db $ CreateFileObject (ObjectName "File") (BucketId 1) (Just $ ObjectId 1))
+                 `shouldReturn` Done (ObjectId 2)
+
+        it "Create Link object under Directory to File manually" $ do
+          \db -> (update' db $ CreateLinkObject (ObjectName "Link") (BucketId 1) (Just $ ObjectId 1) (ObjectId 2))
+                 `shouldReturn` Done (ObjectId 3)
+
+        it "Create FileData manually" $ do
+          \db -> (getCurrentTime >>= \time -> (update' db $ AddFileDataToFile (ObjectId 2) time "TestData"))
+                 `shouldReturn` Done (FileId 1)
 
         it "Run auto generation of Dir objects under bucket root" $
           \db -> property $ prop_createDirObjectInRoot db
@@ -119,20 +131,38 @@ objectTests = do
           \db -> (genLinkObjId db >>= (update' db . CreateFileObject (ObjectName "failed") (BucketId 1) . Just))
                 `shouldReturn` Failed NotADirectory
 
-        -- it "Delete the Object manually" $ do
+        it "Creating FileData for non-File object should fail" $ do
+          \db -> ( getCurrentTime >>= (\time -> update' db $ AddFileDataToFile (ObjectId 1) time "Test data")
+                 ) `shouldReturn` Failed NotAFile
+
+        modifyMaxSuccess (const 1000) $ it "Run auto generation of FileData" $
+          \db -> property $ prop_addFileDataToFile db
+
+        it "Delete the Link Object manually" $ do
+          \db -> (update' db $ DeleteObject (ObjectId 3))
+                 `shouldReturn` Done ()
+
+        it "Delete the File Object manually" $ do
+          \db -> (update' db $ DeleteObject (ObjectId 2))
+                 `shouldReturn` Done ()
+
+        -- it "Delete the Directory Object manually" $ do
         --   \db -> (update' db $ DeleteObject (ObjectId 1))
         --          `shouldReturn` Done ()
 
         -- it "Run auto deleting objects" $
         --   \db -> property $ prop_deleteObjects db
 
-        it "Creating FileData for non-File object should fail" $ do
-          \db -> ( getCurrentTime >>= (\time -> update' db $ AddFileDataToFile (ObjectId 1) time "Test data")
-                 ) `shouldReturn` Failed NotAFile
-
-        modifyMaxSuccess (const 1000) $ it "Run auto generating FileData" $
-          \db -> property $ prop_addFileDataToFile db
-
-        it "Query all Objects and generate json output" $
+        it "Query all Objects and generate json output" $ do
           \db -> (query' db QueryAllBucketsForJson >>= DBL.putStr . encodePretty)
             `shouldReturn` ()
+
+        it "Query and show DBIndex" $ do
+          \db -> ( query' db QueryBucketIndex >>= putStrLn . show
+                   >>
+                   query' db QueryObjectIndex >>= putStrLn . show
+                   >>
+                   query' db QueryFileDataIndex >>= putStrLn . show
+                 )
+                 `shouldReturn` ()
+

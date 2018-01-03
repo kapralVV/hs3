@@ -200,24 +200,22 @@ deleteObjectGeneric oId = do
 deleteObject :: ObjectId -> Update AcidDB (Status ())
 deleteObject oId = do
   acidDb <- get
-  let statusObject = queryObjectById' oId acidDb
-  case statusObject of
+  case queryObjectById' oId acidDb of
     Failed e   -> return $ Failed e
     Done object
       | isFile'' object -> do
-          let childrenFileIds = (map fileId . IX.toList) <$> queryChidFiles' (objectId object) acidDb
+          let childrenFileIds = (map fileId . IX.toList) <$> queryChidFiles' oId acidDb
           whenDone childrenFileIds $ \childrenFileIds' -> do
-            deleteFileDataErrors <- mapM deleteFileData childrenFileIds'
+            deleteFileDataErrors <- fmap errorMessages $ mapM deleteFileData childrenFileIds'
             if not $ null deleteFileDataErrors then
               return . Failed $ ErrorMessage "Cannot remove all child FileData set"
-              else deleteObjectGeneric (objectId object)
+              else deleteObjectGeneric oId
       | isDirectory'' object -> do
-          let childrenObjectIds = fmap (map objectId . IX.toList) . liftA2 queryChildObjects' parentBucketId parentObjectId object $ acidDb
+          let childrenObjectIds = fmap (map objectId . IX.toList) $ queryChildObjects' (parentBucketId object) (parentObjectId object) acidDb
           whenDone childrenObjectIds $ \childrenObjectIds' -> do
-            deleteObjectsErrors <- mapM deleteObject childrenObjectIds'
+            deleteObjectsErrors <- fmap errorMessages $! mapM deleteObject childrenObjectIds'
             if not $ null deleteObjectsErrors then
               return . Failed $ ErrorMessage "Cannot remove all child Objects set"
-              else deleteObjectGeneric (objectId object)
-      | isLink'' object ->
-          deleteObjectGeneric (objectId object)
+              else deleteObjectGeneric oId
+      | isLink'' object -> deleteObjectGeneric oId
       | otherwise -> return . Failed $ ErrorMessage "This case is not possible until you add new ObjectType"

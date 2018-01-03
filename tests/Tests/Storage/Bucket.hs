@@ -70,4 +70,4 @@ bucketTests = do
           \db -> fmap holes (query' db QueryBucketIndex) `shouldReturn` [BucketId 1]
 
         it "Add new Bucket again. It should have '1' index" $ do
-          \db -> update' db (CreateBucket (BucketName "New test")) `shouldReturn` Done (BucketId 1)
+          \db -> update' db (CreateBucket (BucketName "New Bucket")) `shouldReturn` Done (BucketId 1)
