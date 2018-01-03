@@ -71,7 +71,7 @@ Test-Suite Tests
                      , pureMD5
                      , mtl
                      , QuickCheck
-                     , quickcheck-text
+                     , quickcheck-instances
                      , hspec
                      , hspec-core
                      , aeson-pretty
