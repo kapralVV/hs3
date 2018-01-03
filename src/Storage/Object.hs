@@ -172,7 +172,7 @@ createLinkObject
 createLinkObject name bId pId oId = do
   lObject <- liftQuery $ queryObjectById oId
   whenDone lObject $ \lObj -> do
-    if parentBucketId lObj == bId then
+    if parentBucketId lObj == bId && parentObjectId lObj /= (Just oId) then
       createObject name bId pId (Link oId)
       else return $ Failed NotAllowed
 

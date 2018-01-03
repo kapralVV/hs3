@@ -73,5 +73,6 @@ Test-Suite Tests
                      , QuickCheck
                      , quickcheck-text
                      , hspec
+                     , hspec-core
                      , aeson-pretty
                      , Unique

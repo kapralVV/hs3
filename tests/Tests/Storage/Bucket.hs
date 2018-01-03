@@ -22,6 +22,7 @@ import Other.IxSetAeson
 
 import Tests.Generic
 import Test.Hspec
+import Test.Hspec.QuickCheck
 
 
 prop_createBucket :: AcidState AcidDB -> BucketName -> Property
@@ -49,7 +50,7 @@ bucketTests = do
         it "It's not possible to create bucket with the same name" $ do
           \db -> update' db (CreateBucket (BucketName "test")) `shouldReturn` Failed NameExists
 
-        it "Run auto generation of buckets" $
+        modifyMaxSuccess (const 10) $ it "Run auto generation of buckets" $
           \db -> property $ prop_createBucket db
 
         it "Check if all bucketNames are unique" $ do

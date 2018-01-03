@@ -21,9 +21,9 @@ import Data.Aeson.Encode.Pretty
 import qualified Data.ByteString.Lazy as DBL
 import Other.IxSetAeson
 
-
 import Tests.Generic
 import Test.Hspec
+import Test.Hspec.QuickCheck
 
 
 prop_createDirObjectInRoot :: AcidState AcidDB -> ObjectName -> Property
@@ -47,9 +47,9 @@ prop_createEmptyFilesInDirs db name = monadicIO $ do
 prop_createLinkObject :: AcidState AcidDB -> ObjectName -> Property
 prop_createLinkObject db name = monadicIO $ do
   (bId,dId) <- run $ genDirectoryObjId db
-  fId       <- run $ genObjectIdPred db (\b -> (parentBucketId b) == bId)
+  fId       <- run $ genObjectId db
   oId  <- run . update' db $ CreateLinkObject name bId dId fId
-  assert (statusToBool oId || (Failed NameExists) == oId)
+  assert $ or [statusToBool oId, (Failed NameExists) == oId, Failed NotAllowed == oId]
 
 prop_deleteObjects :: AcidState AcidDB -> Property
 prop_deleteObjects db = monadicIO $ do
@@ -70,7 +70,7 @@ objectTests = do
         it "Run auto generation of Dir objects under dir objects" $
           \db -> property $ prop_createDirsInDirs db
 
-        it "Run auto generation of File objects in dir objects" $
+        modifyMaxSuccess (const 500) $ it "Run auto generation of File objects in dir objects" $
           \db -> property $ prop_createEmptyFilesInDirs db
 
         -- (BucketId 1000) is not possible in test-state (but can be)
@@ -80,19 +80,19 @@ objectTests = do
 
         -- (ObjectId 1000) is not possible in test-state (but can be)
         it "Creating  Object under non-existing Dir Object should fail" $ do
-         \db -> update' db ( CreateFileObject (ObjectName "failed") (BucketId 1) (Just $ ObjectId 1000))
+         \db -> update' db ( CreateFileObject (ObjectName "failed") (BucketId 1) (Just $ ObjectId 10000))
                 `shouldReturn` Failed NotFound
 
         it "Creating FileObject under FileObject should fail" $ do
           \db -> (genFileObjId db >>= (update' db . CreateFileObject (ObjectName "failed") (BucketId 1) . Just))
                  `shouldReturn` Failed NotADirectory
 
-        it "Run auto generation of Link objects" $
+        modifyMaxSuccess (const 5) $ it "Run auto generation of Link objects" $
           \db -> property $ prop_createLinkObject db
 
-        -- it "Creating FileObject under LinkObject should fail" $ do
-        --   \db -> (genLinkObjId db >>= (update' db . CreateFileObject (ObjectName "failed") (BucketId 1) . Just))
-        --          `shouldReturn` Failed NotADirectory
+        it "Creating FileObject under LinkObject should fail" $ do
+          \db -> (genLinkObjId db >>= (update' db . CreateFileObject (ObjectName "failed") (BucketId 1) . Just))
+                `shouldReturn` Failed NotADirectory
 
         -- it "Run auto deleting objects" $
         --   \db -> property $ prop_deleteObjects db
