@@ -5,4 +5,10 @@ language: haskell
 ghc:
   - "7.10"
 
+cache:
+  directories:
+  - .cabal-sandbox
+
+install : cabal sandbox init && cabal update && cabal install --only-dependencies --enable-tests --disable-documentation
 script: cabal configure --enable-tests && cabal test --show-details=always
+
