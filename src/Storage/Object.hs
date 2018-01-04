@@ -10,7 +10,6 @@ import Control.Monad.State
 import Control.Monad.Reader
 import qualified Data.IxSet                 as IX
 import qualified Data.ByteString.Lazy       as DBL
-import Control.Applicative
 import Data.Time.Clock
 
 import Types.FileSystem
@@ -196,26 +195,3 @@ deleteObjectGeneric oId = do
     return $ Done ()
     else
     return $ Failed NotFound
-
-deleteObject :: ObjectId -> Update AcidDB (Status ())
-deleteObject oId = do
-  acidDb <- get
-  case queryObjectById' oId acidDb of
-    Failed e   -> return $ Failed e
-    Done object
-      | isFile'' object -> do
-          let childrenFileIds = (map fileId . IX.toList) <$> queryChidFiles' oId acidDb
-          whenDone childrenFileIds $ \childrenFileIds' -> do
-            deleteFileDataErrors <- fmap errorMessages $ mapM deleteFileData childrenFileIds'
-            if not $ null deleteFileDataErrors then
-              return . Failed $ ErrorMessage "Cannot remove all child FileData set"
-              else deleteObjectGeneric oId
-      | isDirectory'' object -> do
-          let childrenObjectIds = fmap (map objectId . IX.toList) $ queryChildObjects' (parentBucketId object) (parentObjectId object) acidDb
-          whenDone childrenObjectIds $ \childrenObjectIds' -> do
-            deleteObjectsErrors <- fmap errorMessages $! mapM deleteObject childrenObjectIds'
-            if not $ null deleteObjectsErrors then
-              return . Failed $ ErrorMessage "Cannot remove all child Objects set"
-              else deleteObjectGeneric oId
-      | isLink'' object -> deleteObjectGeneric oId
-      | otherwise -> return . Failed $ ErrorMessage "This case is not possible until you add new ObjectType"

@@ -3,11 +3,12 @@
 module Tests.Storage.Object where
 
 import Types.FileSystem
-import Types.DbIndexInfo
 import Types.AcidDB
 import Types.Status
 import Storage.AcidDB
+import Storage.MainStorage
 import Tests.Storage.GenTestData
+import Other.IxSetAeson ()
 
 import Data.Time
 import Data.Acid
@@ -15,8 +16,6 @@ import Data.Acid.Advanced
 import Test.QuickCheck
 import Test.QuickCheck.Monadic
 import Control.Applicative (liftA2)
-import qualified Data.IxSet  as IX
-import qualified Data.Set    as DS
 
 import Data.Aeson.Encode.Pretty
 import qualified Data.ByteString.Lazy as DBL
@@ -63,7 +62,7 @@ prop_createLinkObject db name = monadicIO $ do
 prop_deleteObjects :: AcidState AcidDB -> Property
 prop_deleteObjects db = monadicIO $ do
   oId    <- run $ genObjectId db
-  status <- run . update' db $ DeleteObject oId
+  status <- run $ deleteObject db oId
   assert $ statusToBool status
   
 
@@ -139,23 +138,27 @@ objectTests = do
           \db -> property $ prop_addFileDataToFile db
 
         it "Delete the Link Object manually" $ do
-          \db -> (update' db $ DeleteObject (ObjectId 3))
+          \db -> deleteObject db (ObjectId 3)
                  `shouldReturn` Done ()
 
         it "Delete the File Object manually" $ do
-          \db -> (update' db $ DeleteObject (ObjectId 2))
+          \db -> deleteObject db (ObjectId 2)
                  `shouldReturn` Done ()
 
+        it "Show Childrens of Directory" $ do
+          \db -> ((query' db $ QueryChildObjects (BucketId 1) (Just $ ObjectId 1)) >>= DBL.putStr . encodePretty)
+                 `shouldReturn` ()
+
         -- it "Delete the Directory Object manually" $ do
-        --   \db -> (update' db $ DeleteObject (ObjectId 1))
+        --   \db -> deleteObject db (ObjectId 1)
         --          `shouldReturn` Done ()
 
         -- it "Run auto deleting objects" $
         --   \db -> property $ prop_deleteObjects db
 
-        it "Query all Objects and generate json output" $ do
-          \db -> (query' db QueryAllBucketsForJson >>= DBL.putStr . encodePretty)
-            `shouldReturn` ()
+        -- it "Query all Objects and generate json output" $ do
+        --   \db -> (query' db QueryAllBucketsForJson >>= DBL.putStr . encodePretty)
+        --     `shouldReturn` ()
 
         it "Query and show DBIndex" $ do
           \db -> ( query' db QueryBucketIndex >>= putStrLn . show

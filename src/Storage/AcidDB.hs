@@ -43,6 +43,6 @@ makeAcidic ''AcidDB [ 'queryBucketIndex
                     , 'createDirectoryObject
                     , 'createLinkObject
                     , 'addFileDataToFile
-                    , 'deleteObject
+                    , 'deleteObjectGeneric
                     , 'queryAllBucketsForJson
                     ]
