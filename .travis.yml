@@ -3,25 +3,27 @@ sudo: false
 os: linux
 
 language: haskell
+cache:
+  directories:
+    - .cabal-sandbox
+
 matrix:
   include:
   - ghc: "8.2"
-    cache:
-    directories:
-      - .cabal-sandbox
-    env: CACHE_NAME="CACHE-8.2"
+    env: CACHE_NAME=CACHE-8.2
+
+  - ghc: "8.0"
+    env: CACHE_NAME=CACHE-8.0
 
   - ghc: "7.10"
     cache:
-    directories:
-      - .cabal-sandbox
-    env: CACHE_NAME="CACHE-7.10"
+    env: CACHE_NAME=CACHE-7.10
 
+  - ghc: "7.8"
+    env: CACHE_NAME=CACHE-7.8
+    
   - ghc: "7.6"
-    cache:
-    directories:
-      - .cabal-sandbox
-    env: CACHE_NAME="CACHE-7.6"
+    env: CACHE_NAME=CACHE-7.6
 
 install : cabal sandbox init && cabal install --only-dependencies --enable-tests --disable-documentation
 script: cabal configure --enable-tests && cabal test --show-details=always
