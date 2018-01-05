@@ -12,7 +12,6 @@ import Types.AcidDB
 import Storage.Object
 import qualified Data.IxSet  as IX
 import Storage.AcidDB
-import Control.Monad
 
 deleteObject :: AcidState AcidDB -> ObjectId -> IO (Status ())
 deleteObject db oId = do
@@ -31,10 +30,15 @@ deleteObject db oId = do
           childrenObjects <- query' db (QueryChildObjects (parentBucketId object) (Just oId))
           whenDone childrenObjects $ \childrenObjects' -> do
             let childrenObjectIds = map objectId $ IX.toList childrenObjects'
-            void $ mapM_ (deleteObject db) (strictList childrenObjectIds)
+            mapM_ (deleteObject db) childrenObjectIds
             update' db $ DeleteObjectGeneric oId
       | otherwise -> return . Failed $ ErrorMessage "This case is not possible until you add new ObjectType"
 
-strictList :: forall t. [t] -> [t]
-strictList xs = if all p xs then xs else []
-  where p x = x `seq` True
+deleteBucket :: AcidState AcidDB -> BucketId -> IO (Status ())
+deleteBucket db bId = do
+  createCheckpoint db
+  xs <- query' db $ QueryEverythingIdsInBucket bId
+  whenDone xs $ \((objectIds, fileIds)) -> do
+    groupUpdates db $ map DeleteFileData fileIds
+    groupUpdates db $ map DeleteObjectGeneric objectIds
+    update' db $ DeleteBucketGeneric bId

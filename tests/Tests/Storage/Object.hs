@@ -64,7 +64,6 @@ prop_deleteObjects db = monadicIO $ do
   oId    <- run $ genObjectId db
   status <- run $ deleteObject db oId
   assert $ statusToBool status
-  
 
 objectTests :: Spec
 objectTests = do
@@ -153,8 +152,12 @@ objectTests = do
           \db -> deleteObject db (ObjectId 1)
                  `shouldReturn` Done ()
 
-        -- it "Run auto deleting objects" $
-        --   \db -> property $ prop_deleteObjects db
+        modifyMaxSuccess (const 20) $ it "Run auto deleting objects" $
+          \db -> property $ prop_deleteObjects db
+
+        it "Remove Bucket manually" $ do
+          \db -> deleteBucket db (BucketId 2)
+                 `shouldReturn` Done ()
 
         -- it "Query all Objects and generate json output" $ do
         --   \db -> (query' db QueryAllBucketsForJson >>= DBL.putStr . encodePretty)

@@ -1,5 +1,6 @@
-import Storage.AcidDB
-import Storage.MainStorage
+import Storage.AcidDB ()
+import Storage.MainStorage ()
 
--- main :: IO ()
+main :: IO ()
+main = putStrLn "Hello world"
 

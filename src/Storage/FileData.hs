@@ -94,3 +94,4 @@ queryParentFObjectId' key = fmap parentFObjectId . queryFile' key
 queryParentFObjectId :: FileId -> Query AcidDB (Status ObjectId)
 queryParentFObjectId key = queryParentFObjectId' key `fmap` ask
 
+

@@ -33,6 +33,10 @@ makeAcidic ''AcidDB [ 'queryBucketIndex
                     , 'queryParentFObjectId
                     , 'queryParentFObject
                     , 'queryAllObjects
+                    , 'queryBucketObjectIds
+                    , 'queryAllFileIdsOfObject
+                    , 'queryAllFileIdsOfMultipleObjects
+                    , 'queryEverythingIdsInBucket
                     , 'queryObjectById
                     , 'queryObjectByName
                     , 'queryObjectType
