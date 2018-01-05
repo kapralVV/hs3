@@ -149,9 +149,9 @@ objectTests = do
           \db -> ((query' db $ QueryChildObjects (BucketId 1) (Just $ ObjectId 1)) >>= DBL.putStr . encodePretty)
                  `shouldReturn` ()
 
-        -- it "Delete the Directory Object manually" $ do
-        --   \db -> deleteObject db (ObjectId 1)
-        --          `shouldReturn` Done ()
+        it "Delete the Directory Object manually" $ do
+          \db -> deleteObject db (ObjectId 1)
+                 `shouldReturn` Done ()
 
         -- it "Run auto deleting objects" $
         --   \db -> property $ prop_deleteObjects db
