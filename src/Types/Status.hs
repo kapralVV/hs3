@@ -15,7 +15,7 @@ import GHC.Generics
 import Data.Data
 import Data.SafeCopy
 import Data.Text (Text)
-import Control.Applicative ()
+import Control.Applicative (Applicative)
 
 
 data ErrorMessage = ErrorMessage Text

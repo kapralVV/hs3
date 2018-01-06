@@ -1,4 +1,6 @@
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE ConstraintKinds   #-}
+
 
 module Tests.Generic where
 
