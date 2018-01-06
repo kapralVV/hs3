@@ -86,7 +86,7 @@ queryAllBuckets = queryAllBuckets' `fmap` ask
 queryBucketBy' :: Typeable k => k -> AcidDB -> Status Bucket
 queryBucketBy' key = queryBy key . snd . buckets
 
-queryBucketBy :: (Typeable k, MonadReader AcidDB f) => k -> f (Status Bucket)
+queryBucketBy :: (Typeable k, Functor f, MonadReader AcidDB f) => k -> f (Status Bucket)
 queryBucketBy key = queryBucketBy' key `fmap` ask
 
 queryBucketByName' :: BucketName -> AcidDB -> Status Bucket

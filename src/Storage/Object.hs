@@ -59,7 +59,7 @@ queryEverythingIdsInBucket bId = queryEverythingIdsInBucket' bId `fmap` ask
 queryObjectBy' :: Typeable k =>  k -> AcidDB -> Status Object
 queryObjectBy' key = queryBy key . snd . objects
 
-queryObjectBy :: (Typeable k, MonadReader AcidDB f) => k -> f (Status Object)
+queryObjectBy :: (Typeable k, Functor f, MonadReader AcidDB f) => k -> f (Status Object)
 queryObjectBy key = queryObjectBy' key `fmap` ask
 
 queryObjectById' :: ObjectId -> AcidDB -> Status Object
