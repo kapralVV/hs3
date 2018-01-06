@@ -5,6 +5,7 @@ module Tests.Storage.Object where
 import Types.FileSystem
 import Types.AcidDB
 import Types.Status
+import Types.DbIndexInfo
 import Storage.AcidDB
 import Storage.MainStorage
 import Tests.Storage.GenTestData
@@ -162,6 +163,13 @@ objectTests = do
         -- it "Query all Objects and generate json output" $ do
         --   \db -> (query' db QueryAllBucketsForJson >>= DBL.putStr . encodePretty)
         --     `shouldReturn` ()
+
+        it "DbIndex <holes> should not be empty after removing Objects and Bucket" $ do
+          \db -> ( sequence [ fmap (not . null . holes) $ query' db QueryBucketIndex
+                            , fmap (not . null . holes) $ query' db QueryObjectIndex
+                            , fmap (not . null . holes) $ query' db QueryFileDataIndex
+                            ] >>= return . and
+                 ) `shouldReturn` True
 
         it "Query and show DBIndex" $ do
           \db -> ( query' db QueryBucketIndex >>= putStrLn . show

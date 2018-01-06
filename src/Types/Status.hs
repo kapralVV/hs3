@@ -4,6 +4,8 @@
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE KindSignatures             #-}
+{-# LANGUAGE ConstraintKinds            #-}
+
 
 
 module Types.Status where
@@ -13,6 +15,7 @@ import GHC.Generics
 import Data.Data
 import Data.SafeCopy
 import Data.Text (Text)
+import Control.Applicative ()
 
 
 data ErrorMessage = ErrorMessage Text
