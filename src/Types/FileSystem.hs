@@ -66,7 +66,7 @@ instance A.FromJSON ObjectType
 ---------------- ObjectName -------------
 
 newtype ObjectName = ObjectName Text
-                 deriving (Show, Eq, Ord, Data, Typeable, Generic, Monoid)
+                 deriving (Show, Eq, Ord, Data, Typeable, Generic)
 instance A.ToJSON ObjectName
 instance A.FromJSON ObjectName
 
@@ -117,7 +117,7 @@ $(deriveSafeCopy 0 'base ''FileData)
 ---------------- BucketName  ------------------
 
 newtype BucketName = BucketName Text
-                 deriving (Show, Eq, Ord, Data, Typeable, Generic, Monoid)
+                 deriving (Show, Eq, Ord, Data, Typeable, Generic)
 instance A.ToJSON BucketName
 instance A.FromJSON BucketName
 
