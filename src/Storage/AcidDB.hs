@@ -13,7 +13,6 @@ import Storage.Bucket
 import Storage.FileData
 import Storage.Object
 
-import Types.FileSystemJson
 
 makeAcidic ''AcidDB [ 'queryBucketIndex
                     , 'queryObjectIndex
@@ -48,5 +47,4 @@ makeAcidic ''AcidDB [ 'queryBucketIndex
                     , 'createLinkObject
                     , 'addFileDataToFile
                     , 'deleteObjectGeneric
-                    , 'queryAllBucketsForJson
                     ]

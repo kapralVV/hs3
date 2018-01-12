@@ -9,6 +9,7 @@ import Types.DbIndexInfo
 import Storage.AcidDB
 import Storage.MainStorage
 import Tests.Storage.GenTestData
+import Tests.Storage.FileSystemJson
 import Other.IxSetAeson ()
 
 import Data.Time
@@ -160,10 +161,6 @@ objectTests = do
           \db -> deleteBucket db (BucketId 2)
                  `shouldReturn` Done ()
 
-        -- it "Query all Objects and generate json output" $ do
-        --   \db -> (query' db QueryAllBucketsForJson >>= DBL.putStr . encodePretty)
-        --     `shouldReturn` ()
-
         it "DbIndex <holes> should not be empty after removing Objects and Bucket" $ do
           \db -> ( sequence [ fmap (not . null . holes) $ query' db QueryBucketIndex
                             , fmap (not . null . holes) $ query' db QueryObjectIndex
@@ -180,3 +177,7 @@ objectTests = do
                  )
                  `shouldReturn` ()
 
+
+        it "Query all Objects and generate json output" $ do
+          \db -> (query' db (QueryBucketById (BucketId 1)) >>= bucketToJson db . fromStatus >>= DBL.putStr . encodePretty)
+            `shouldReturn` ()
