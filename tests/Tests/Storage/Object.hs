@@ -184,9 +184,29 @@ objectTests = do
                  )
                  `shouldReturn` ()
 
-
         it "Query Objects from Bucket 3 and generate json output" $ do
           \db -> runStatusT (showBucketJson db $ BucketId 3) `shouldReturn` Done ()
 
         it "Querying Objects from (Bucket 2) should fail as it's removed" $ do
           \db -> runStatusT (showBucketJson db $ BucketId 2) `shouldReturn` Failed NotFound
+
+        modifyMaxSuccess (const 500) $ it "Run auto-generation of Files again to check if <holes> are used" $
+          \db -> property $ prop_createEmptyFilesInDirs db
+
+        modifyMaxSuccess (const 500) $ it "Run auto-generation FileData again to check if <holes> are used" $
+          \db -> property $ prop_addFileDataToFile db
+
+        it "DbIndex <holes> should BE empty after new auto-generation Objects and FileDatas" $ do
+          \db -> ( sequence [ fmap (null . holes) $ query' db QueryObjectIndex
+                            , fmap (null . holes) $ query' db QueryFileDataIndex
+                            ] >>= return . and
+                 ) `shouldReturn` True
+
+        it "Query and show DBIndex again" $ do
+          \db -> ( query' db QueryBucketIndex >>= putStrLn . show
+                   >>
+                   query' db QueryObjectIndex >>= putStrLn . show
+                   >>
+                   query' db QueryFileDataIndex >>= putStrLn . show
+                 )
+                 `shouldReturn` ()
