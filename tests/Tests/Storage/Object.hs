@@ -18,6 +18,7 @@ import Data.Acid.Advanced
 import Test.QuickCheck
 import Test.QuickCheck.Monadic
 import Control.Applicative (liftA2)
+import Control.Monad.Trans
 
 import Data.Aeson.Encode.Pretty
 import qualified Data.ByteString.Lazy as DBL
@@ -66,6 +67,12 @@ prop_deleteObjects db = monadicIO $ do
   oId    <- run $ genObjectId db
   status <- run $ deleteObject db oId
   assert $ statusToBool status
+
+showBucketJson :: AcidState AcidDB -> BucketId -> StatusT IO ()
+showBucketJson db bId = do
+  bucket' <- StatusT . query' db $ QueryBucketById bId
+  json <- bucketToJson db bucket'
+  lift . DBL.putStr $ encodePretty json
 
 objectTests :: Spec
 objectTests = do
@@ -178,6 +185,8 @@ objectTests = do
                  `shouldReturn` ()
 
 
-        it "Query all Objects and generate json output" $ do
-          \db -> (query' db (QueryBucketById (BucketId 1)) >>= bucketToJson db . fromStatus >>= DBL.putStr . encodePretty)
-            `shouldReturn` ()
+        it "Query Objects from Bucket 1 and generate json output" $ do
+          \db -> runStatusT (showBucketJson db $ BucketId 1) `shouldReturn` Done ()
+
+        it "Querying Objects from (Bucket 2) should fail as it's removed" $ do
+          \db -> runStatusT (showBucketJson db $ BucketId 2) `shouldReturn` Failed NotFound

@@ -14,7 +14,6 @@ import qualified Data.IxSet               as IX
 import qualified Data.Set                 as DS
 import Control.Monad
 import Control.Applicative
-
 import qualified Data.Aeson as A
 
 import Types.FileSystem
@@ -42,24 +41,19 @@ data TypeJson = FileJson      (DS.Set FileId)
 instance A.ToJSON TypeJson
 instance A.FromJSON TypeJson
 
-objectToJson :: AcidState AcidDB -> Object -> IO ObjectJson
+objectToJson :: AcidState AcidDB -> Object -> StatusT IO ObjectJson
 objectToJson db object@Object{..} =
   ObjectJson
   <$> pure object
   <*>  case objectType of
-         File      -> fmap (FileJson . DS.fromList . fromStatus) . query' db $ QueryAllFileIdsOfObject objectId
-         Directory -> join . fmap (fmap (DirectoryJson . DS.fromList) . mapM (objectToJson db) . IX.toList . fromStatus)
-                      . query' db $ QueryChildObjects parentBucketId (Just objectId)
-         Link oId  -> join . fmap (fmap LinkJson . (objectToJson db) . fromStatus)
-                      . query' db $ QueryObjectById oId
+         File      -> fmap (FileJson . DS.fromList) . StatusT . query' db $ QueryAllFileIdsOfObject objectId
+         Directory -> join . fmap (fmap (DirectoryJson . DS.fromList) . mapM (objectToJson db) . IX.toList)
+                      . StatusT . query' db $ QueryChildObjects parentBucketId (Just objectId)
+         Link oId  -> join . fmap (fmap LinkJson . (objectToJson db))
+                      . StatusT . query' db $ QueryObjectById oId
 
-bucketToJson :: AcidState AcidDB -> Bucket -> IO BucketJson
+bucketToJson :: AcidState AcidDB -> Bucket -> StatusT IO BucketJson
 bucketToJson db bucket@Bucket{..} = do
-  allObjects <- query' db QueryAllObjects
-  bucketObjects <- fmap DS.fromList . mapM (objectToJson db) . IX.toList . IX.getEQ bucketId $ fromStatus allObjects
+  allObjects <- StatusT $ query' db QueryAllObjects
+  bucketObjects <- fmap DS.fromList . mapM (objectToJson db) . IX.toList $ IX.getEQ bucketId allObjects
   return $ BucketJson bucket bucketObjects
-
-allBucketsJson :: AcidState AcidDB -> IO [BucketJson]
-allBucketsJson db = do
-   allbuckets <- query' db QueryAllBuckets
-   mapM (bucketToJson db) . IX.toList $ fromStatus allbuckets

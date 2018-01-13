@@ -15,8 +15,9 @@ import GHC.Generics
 import Data.Data
 import Data.SafeCopy
 import Data.Text (Text)
-import Control.Applicative (Applicative, pure, (<*>))
-
+import Control.Applicative
+import Control.Monad
+import Control.Monad.Trans
 
 data ErrorMessage = ErrorMessage Text
                   | NameExists
@@ -76,3 +77,34 @@ whenDone :: forall t (m :: * -> *) a.
 whenDone x m = case x of
                  Done y   -> m y
                  Failed e -> return $ Failed e
+
+newtype (Monad m) => StatusT m a = StatusT { runStatusT :: m (Status a) }
+
+instance (Functor m, Monad m) => Functor (StatusT m) where
+  fmap f = StatusT . fmap (fmap f) . runStatusT
+
+instance (Monad m) => Monad (StatusT m) where
+  return = StatusT . return . Done
+  x >>= f = StatusT $ do
+    statusValue <- runStatusT x
+    case statusValue of
+      Failed e -> return $ Failed e
+      Done value   -> runStatusT $ f value
+
+instance (Monad m) => Applicative (StatusT m) where
+  pure = StatusT . return . Done
+  (<*>)  = ap
+
+instance (Monad m) => Alternative (StatusT m) where
+  empty   = StatusT . return $ Failed NotFound
+  x <|> y = StatusT $ do statusValue <- runStatusT x
+                         case statusValue of
+                           Failed _ -> runStatusT y
+                           Done   _ -> return statusValue
+
+instance (Monad m) => MonadPlus (StatusT m) where
+  mzero = empty
+  mplus = (<|>)
+
+instance MonadTrans StatusT where
+      lift = StatusT . (liftA Done)
