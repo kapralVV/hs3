@@ -5,7 +5,7 @@
 {-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE KindSignatures             #-}
 {-# LANGUAGE ConstraintKinds            #-}
-
+{-# LANGUAGE InstanceSigs               #-}
 
 
 module Types.Status where
@@ -91,20 +91,21 @@ instance (Monad m) => Monad (StatusT m) where
       Failed e -> return $ Failed e
       Done value   -> runStatusT $ f value
 
-instance (Monad m) => Applicative (StatusT m) where
+instance (Functor m, Monad m) => Applicative (StatusT m) where
   pure = StatusT . return . Done
   (<*>)  = ap
 
-instance (Monad m) => Alternative (StatusT m) where
+instance (Functor m, Monad m) => Alternative (StatusT m) where
   empty   = StatusT . return $ Failed NotFound
   x <|> y = StatusT $ do statusValue <- runStatusT x
                          case statusValue of
                            Failed _ -> runStatusT y
                            Done   _ -> return statusValue
 
-instance (Monad m) => MonadPlus (StatusT m) where
+instance (Functor m, Monad m) => MonadPlus (StatusT m) where
   mzero = empty
   mplus = (<|>)
 
 instance MonadTrans StatusT where
-      lift = StatusT . (liftA Done)
+  lift :: Monad m => m a -> StatusT m a
+  lift = StatusT . (liftM Done)
