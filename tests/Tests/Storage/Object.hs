@@ -185,8 +185,8 @@ objectTests = do
                  `shouldReturn` ()
 
 
-        it "Query Objects from Bucket 1 and generate json output" $ do
-          \db -> runStatusT (showBucketJson db $ BucketId 1) `shouldReturn` Done ()
+        it "Query Objects from Bucket 3 and generate json output" $ do
+          \db -> runStatusT (showBucketJson db $ BucketId 3) `shouldReturn` Done ()
 
         it "Querying Objects from (Bucket 2) should fail as it's removed" $ do
           \db -> runStatusT (showBucketJson db $ BucketId 2) `shouldReturn` Failed NotFound
