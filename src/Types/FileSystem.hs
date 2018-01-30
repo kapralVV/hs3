@@ -13,6 +13,7 @@ module Types.FileSystem where
 import Data.Typeable
 import Data.Data
 import GHC.Generics
+import Control.DeepSeq
 
 -- import Data.Acid
 import Data.SafeCopy
@@ -29,7 +30,7 @@ import Data.Int
 ---------------- BucketId ----------------
 
 newtype BucketId = BucketId Int
-                 deriving (Show, Eq, Ord, Data, Typeable, Generic, Enum)
+                 deriving (Show, Eq, Ord, Data, Typeable, Generic, Enum, NFData)
 instance A.ToJSON BucketId
 instance A.FromJSON BucketId
 
@@ -38,7 +39,7 @@ $(deriveSafeCopy 0 'base ''BucketId)
 ---------------- ObjectId ----------------
 
 newtype ObjectId = ObjectId Int
-                 deriving (Show, Eq, Ord, Data, Typeable, Generic, Enum)
+                 deriving (Show, Eq, Ord, Data, Typeable, Generic, Enum, NFData)
 instance A.ToJSON ObjectId
 instance A.FromJSON ObjectId
 

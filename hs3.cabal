@@ -46,6 +46,7 @@ library
                      , time
                      , pureMD5
                      , mtl
+                     , deepseq
 -- fixing deps for ghc-7.6 && ghc-7.8
                      , crypto-api == 0.13.2
                      , attoparsec == 0.13.2.0
@@ -114,3 +115,21 @@ Test-Suite hs3StorageTests
 -- fixing deps for ghc-7.6 && ghc-7.8
                      , crypto-api == 0.13.2
                      , attoparsec == 0.13.2.0
+
+Benchmark hs3bench
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      tests
+  main-is:             Bench.hs
+
+  build-depends:       base          >= 4.0 && < 4.11
+                     , hs3
+                     , criterion
+                     , ixset
+                     , text
+                     , acid-state == 0.14.3
+                     , bytestring
+                     , QuickCheck    >= 2.10 && <2.12
+                     , quickcheck-instances
+
+  default-language:    Haskell2010
+  ghc-options:        -Wall -rtsopts
