@@ -26,6 +26,8 @@ queryAllObjects' = snd . objects
 queryAllObjects :: Query AcidDB (Status (IX.IxSet Object))
 queryAllObjects = (Done . queryAllObjects') `fmap` ask
 
+---
+
 queryBucketObjectIds' :: BucketId -> AcidDB -> Status [ObjectId]
 queryBucketObjectIds' bId db =
   queryBucketById' bId db
@@ -33,6 +35,8 @@ queryBucketObjectIds' bId db =
 
 queryBucketObjectIds :: BucketId -> Query AcidDB (Status [ObjectId])
 queryBucketObjectIds bId = queryBucketObjectIds' bId `fmap` ask
+
+---
 
 queryAllFileIdsOfObject' :: ObjectId -> AcidDB -> Status [FileId]
 queryAllFileIdsOfObject' oId db =
@@ -42,11 +46,15 @@ queryAllFileIdsOfObject' oId db =
 queryAllFileIdsOfObject :: ObjectId ->  Query AcidDB (Status [FileId])
 queryAllFileIdsOfObject oId = queryAllFileIdsOfObject' oId `fmap` ask
 
+---
+
 queryAllFileIdsOfMultipleObjects' :: [ObjectId] -> AcidDB -> [FileId]
 queryAllFileIdsOfMultipleObjects' xs db = map fileId $ IX.toList (queryAllFiles' db IX.@+ xs)
 
 queryAllFileIdsOfMultipleObjects :: [ObjectId] -> Query AcidDB [FileId]
 queryAllFileIdsOfMultipleObjects xs = queryAllFileIdsOfMultipleObjects' xs `fmap` ask
+
+---
 
 queryEverythingIdsInBucket' :: BucketId -> AcidDB -> Status ([ObjectId], [FileId])
 queryEverythingIdsInBucket' bId db = do
@@ -55,6 +63,8 @@ queryEverythingIdsInBucket' bId db = do
 
 queryEverythingIdsInBucket :: BucketId -> Query AcidDB (Status ([ObjectId], [FileId]))
 queryEverythingIdsInBucket bId = queryEverythingIdsInBucket' bId `fmap` ask
+
+---
 
 queryObjectBy' :: Typeable k =>  k -> AcidDB -> Status Object
 queryObjectBy' key = queryBy key . snd . objects
@@ -74,6 +84,8 @@ queryObjectByName' = queryObjectBy'
 queryObjectByName :: ObjectName -> Query AcidDB (Status Object)
 queryObjectByName = queryObjectBy
 
+---
+
 queryObjectType' :: ObjectId -> AcidDB -> Status ObjectType
 queryObjectType' key = fmap objectType . queryObjectById' key
 
@@ -85,6 +97,8 @@ queryObjectName' key = fmap objectName . queryObjectById' key
 
 queryObjectName :: ObjectId -> Query AcidDB (Status ObjectName)
 queryObjectName key = queryObjectName' key `fmap` ask
+
+---
 
 queryChildObjects'' :: BucketId -> Maybe ObjectId -> AcidDB -> IX.IxSet Object
 queryChildObjects'' bid pob acidDb = queryAllObjects' acidDb IX.@= bid IX.@= pob
@@ -102,6 +116,14 @@ queryChildObjects' bid Nothing acidDb =
 
 queryChildObjects :: BucketId -> Maybe ObjectId -> Query AcidDB (Status (IX.IxSet Object))
 queryChildObjects bid pod = queryChildObjects' bid pod `fmap` ask
+
+queryChildObjectsByOid' :: ObjectId -> AcidDB -> Status (IX.IxSet Object)
+queryChildObjectsByOid' oId acidDb = queryObjectById' oId acidDb >>= ( \x -> queryChildObjects' (parentBucketId x) (Just oId) acidDb )
+
+queryChildObjectsByOid :: ObjectId -> Query AcidDB (Status (IX.IxSet Object))
+queryChildObjectsByOid oId = queryChildObjectsByOid' oId `fmap` ask
+
+---
 
 queryParentFObject' :: FileId -> AcidDB -> Status Object
 queryParentFObject' key acidDb = queryParentFObjectId' key acidDb >>= flip queryObjectById' acidDb
@@ -225,3 +247,4 @@ deleteObjectGeneric oId = do
     return $ Done ()
     else
     return $ Failed NotFound
+
