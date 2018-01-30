@@ -78,11 +78,13 @@ queryObjectById' = queryObjectBy'
 queryObjectById :: ObjectId -> Query AcidDB (Status Object)
 queryObjectById = queryObjectBy
 
-queryObjectByName' :: ObjectName -> AcidDB -> Status Object
-queryObjectByName' = queryObjectBy'
+queryObjectByName' :: BucketId -> Maybe ObjectId -> ObjectName -> AcidDB -> Status Object
+queryObjectByName' bId moId oName db =
+  queryChildObjects' bId moId db
+  >>= queryBy oName
 
-queryObjectByName :: ObjectName -> Query AcidDB (Status Object)
-queryObjectByName = queryObjectBy
+queryObjectByName :: BucketId -> Maybe ObjectId -> ObjectName -> Query AcidDB (Status Object)
+queryObjectByName bId moId oName = queryObjectByName' bId moId oName `fmap` ask
 
 ---
 

@@ -89,12 +89,26 @@ objectTests = do
                  `shouldReturn` Failed NameExists
 
         it "Create File object under Directory manually" $ do
-          \db -> (update' db $ CreateFileObject (ObjectName "File") (BucketId 1) (Just $ ObjectId 1))
+          \db -> (update' db $ CreateFileObject (ObjectName "File") (BucketId 1) (Just $ ObjectId 1) )
                  `shouldReturn` Done (ObjectId 2)
 
         it "Create Link object under Directory to File manually" $ do
-          \db -> (update' db $ CreateLinkObject (ObjectName "Link") (BucketId 1) (Just $ ObjectId 1) (ObjectId 2))
+          \db -> (update' db $ CreateLinkObject (ObjectName "Link") (BucketId 1) (Just $ ObjectId 1) (ObjectId 2) )
                  `shouldReturn` Done (ObjectId 3)
+
+        it "Creating any object with the same ObjectName should NOT fail if it's located in other place" $ do
+          \db -> (update' db $ CreateDirectoryObject (ObjectName "Directory") (BucketId 1) (Just $ ObjectId 1) )
+                 `shouldReturn` Done (ObjectId 4)
+
+        it "Bucket can have the same ObjectName in a different locations, querying it should work" $ do
+          \db -> (query' db $ QueryObjectByName (BucketId 1) (Just $ ObjectId 1) (ObjectName "Directory") ) 
+                 `shouldReturn` Done (Object { objectId = ObjectId 4
+                                             , objectName = ObjectName "Directory"
+                                             , parentBucketId = BucketId 1
+                                             , parentObjectId = Just $ ObjectId 1
+                                             , objectType = Directory
+                                             }
+                                     )
 
         it "Create FileData manually" $ do
           \db -> (getCurrentTime >>= \time -> (update' db $ AddFileDataToFile (ObjectId 2) time "TestData"))
