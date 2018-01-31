@@ -6,6 +6,7 @@
 {-# LANGUAGE KindSignatures             #-}
 {-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE InstanceSigs               #-}
+{-# LANGUAGE DeriveAnyClass             #-}
 
 
 module Types.Status where
@@ -19,6 +20,8 @@ import Control.Applicative
 import Control.Monad
 import Control.Monad.Trans
 
+import Control.DeepSeq
+
 data ErrorMessage = ErrorMessage Text
                   | NameExists
                   | NotFound
@@ -26,17 +29,18 @@ data ErrorMessage = ErrorMessage Text
                   | NotALink
                   | NotADirectory
                   | NotAllowed
-                  deriving (Show,Eq, Generic, Typeable, Data)
+                  deriving (Show,Eq, Generic, Typeable, Data, NFData)
 instance ToJSON ErrorMessage
 instance FromJSON ErrorMessage
 $(deriveSafeCopy 0 'base ''ErrorMessage)
 
 data Status a = Done a
               | Failed ErrorMessage
-              deriving (Show, Eq, Generic, Typeable, Data)
+              deriving (Show, Eq, Generic, Typeable, Data, NFData)
 instance (ToJSON a) => ToJSON (Status a)
 instance (FromJSON a) => FromJSON (Status a)
 $(deriveSafeCopy 0 'base ''Status)
+
 
 instance Functor Status where
   fmap f (Done x)   = Done (f x)
