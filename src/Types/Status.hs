@@ -6,8 +6,6 @@
 {-# LANGUAGE KindSignatures             #-}
 {-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE InstanceSigs               #-}
-{-# LANGUAGE DeriveAnyClass             #-}
-
 
 module Types.Status where
 
@@ -29,18 +27,21 @@ data ErrorMessage = ErrorMessage Text
                   | NotALink
                   | NotADirectory
                   | NotAllowed
-                  deriving (Show,Eq, Generic, Typeable, Data, NFData)
+                  deriving (Show,Eq, Generic, Typeable, Data)
 instance ToJSON ErrorMessage
 instance FromJSON ErrorMessage
 $(deriveSafeCopy 0 'base ''ErrorMessage)
 
+instance NFData ErrorMessage
+
 data Status a = Done a
               | Failed ErrorMessage
-              deriving (Show, Eq, Generic, Typeable, Data, NFData)
+              deriving (Show, Eq, Generic, Typeable, Data)
 instance (ToJSON a) => ToJSON (Status a)
 instance (FromJSON a) => FromJSON (Status a)
 $(deriveSafeCopy 0 'base ''Status)
 
+instance NFData a => NFData (Status a)
 
 instance Functor Status where
   fmap f (Done x)   = Done (f x)

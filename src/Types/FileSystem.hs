@@ -30,20 +30,24 @@ import Data.Int
 ---------------- BucketId ----------------
 
 newtype BucketId = BucketId Int
-                 deriving (Show, Eq, Ord, Data, Typeable, Generic, Enum, NFData)
+                 deriving (Show, Eq, Ord, Data, Typeable, Generic, Enum)
 instance A.ToJSON BucketId
 instance A.FromJSON BucketId
 
 $(deriveSafeCopy 0 'base ''BucketId)
 
+instance NFData BucketId
+
 ---------------- ObjectId ----------------
 
 newtype ObjectId = ObjectId Int
-                 deriving (Show, Eq, Ord, Data, Typeable, Generic, Enum, NFData)
+                 deriving (Show, Eq, Ord, Data, Typeable, Generic, Enum)
 instance A.ToJSON ObjectId
 instance A.FromJSON ObjectId
 
 $(deriveSafeCopy 0 'base ''ObjectId)
+
+instance NFData ObjectId
 
 ---------------- FileId ------------------
 

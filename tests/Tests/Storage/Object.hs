@@ -74,7 +74,7 @@ showBucketJson db bId = do
   json <- bucketToJson db bucket'
   lift . DBL.putStr $ encodePretty json
 
-
+testObject :: Object
 testObject = Object { objectId = ObjectId 4
                      , objectName = ObjectName "Directory"
                      , parentBucketId = BucketId 1
