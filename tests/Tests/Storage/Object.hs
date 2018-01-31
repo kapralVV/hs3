@@ -74,6 +74,14 @@ showBucketJson db bId = do
   json <- bucketToJson db bucket'
   lift . DBL.putStr $ encodePretty json
 
+
+testObject = Object { objectId = ObjectId 4
+                     , objectName = ObjectName "Directory"
+                     , parentBucketId = BucketId 1
+                     , parentObjectId = Just $ ObjectId 1
+                     , objectType = Directory
+                     }
+
 objectTests :: Spec
 objectTests = do
   beforeAll (openLocalStateFrom "test-state" initAcidDB) $ do
@@ -102,13 +110,11 @@ objectTests = do
 
         it "Bucket can have the same ObjectName in a different locations, querying it should work" $ do
           \db -> (query' db $ QueryObjectByName (BucketId 1) (Just $ ObjectId 1) (ObjectName "Directory") ) 
-                 `shouldReturn` Done (Object { objectId = ObjectId 4
-                                             , objectName = ObjectName "Directory"
-                                             , parentBucketId = BucketId 1
-                                             , parentObjectId = Just $ ObjectId 1
-                                             , objectType = Directory
-                                             }
-                                     )
+                 `shouldReturn` Done (testObject)
+
+        it "Using <PATH> to find the Object" $ do
+          \db -> (query' db $ FollowNames (BucketName "New Bucket") [(ObjectName "Directory"), (ObjectName "Directory")])
+                  `shouldReturn` Done (testObject)
 
         it "Create FileData manually" $ do
           \db -> (getCurrentTime >>= \time -> (update' db $ AddFileDataToFile (ObjectId 2) time "TestData"))

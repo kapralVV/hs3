@@ -56,6 +56,10 @@ maybeToStatus :: Maybe a -> Status a
 maybeToStatus Nothing  = Failed NotFound
 maybeToStatus (Just a) = Done a
 
+statusToMaybe :: Status a -> Maybe a
+statusToMaybe (Failed _) = Nothing
+statusToMaybe (Done a)   = Just a
+
 statusToBool :: Status a -> Bool
 statusToBool (Done _)   = True
 statusToBool (Failed _) = False

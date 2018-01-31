@@ -47,4 +47,5 @@ makeAcidic ''AcidDB [ 'queryBucketIndex
                     , 'createLinkObject
                     , 'addFileDataToFile
                     , 'deleteObjectGeneric
+                    , 'followNames
                     ]
