@@ -253,7 +253,7 @@ deleteObjectGeneric oId = do
 followNames' :: BucketName -> [ObjectName] -> AcidDB -> Status Object
 followNames' bName oNames db =
   queryBucketByName' bName db
-  >>= (\x -> foldM (queryObjectByName' (bucketId x) . join . fmap parentObjectId . statusToMaybe) (Failed NotFound) oNames $ db)
+  >>= (\x -> foldM (queryObjectByName' (bucketId x) . fmap objectId . statusToMaybe) (Failed NotFound) oNames $ db)
 
 followNames ::  BucketName -> [ObjectName] -> Query AcidDB (Status Object)
 followNames bName oNames = followNames'  bName oNames `fmap` ask
