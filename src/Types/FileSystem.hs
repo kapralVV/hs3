@@ -58,6 +58,8 @@ instance A.FromJSON FileId
 
 $(deriveSafeCopy 0 'base ''FileId)
 
+instance NFData FileId
+
 ---------------- ObjectType --------------
 
 data ObjectType = File

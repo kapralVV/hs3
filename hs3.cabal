@@ -126,6 +126,7 @@ Benchmark hs3bench
                      , criterion
                      , ixset
                      , text
+                     , time
                      , acid-state == 0.14.3
                      , bytestring
                      , QuickCheck    >= 2.10 && <2.12
