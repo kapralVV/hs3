@@ -14,9 +14,6 @@ type FileAPI =
   :<|> "api" :> "file" :> Capture "file Id" FileId :> "data" :> Get '[OctetStream] ByteString
 -- GET /api/file/<ID>/data -> show file data by ID
 
-  :<|> "api" :> "file" :> Capture "object Id" ObjectId :> Get '[JSON] [FileDataJson]
--- GET /api/file/<ObjectId> -> show all files of specific object
-
   :<|> "api" :> "file" :> Capture "object Id" ObjectId :> ReqBody '[OctetStream] ByteString :> Put '[JSON] FileId
 -- PUT /api/file/<ObjectId> -> create new file under provided object
 
