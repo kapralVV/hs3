@@ -8,14 +8,11 @@
 module Types.FileSystem where
 
 
--- import Other.IxSetAeson
-
 import Data.Typeable
 import Data.Data
 import GHC.Generics
 import Control.DeepSeq
 
--- import Data.Acid
 import Data.SafeCopy
 import qualified Data.Aeson as A
 import qualified Data.IxSet as IX
@@ -24,7 +21,7 @@ import Data.Text
 import Data.ByteString.Lazy
 import Data.Time.Clock
 import Data.Int
-
+import Control.Applicative
 
 
 ---------------- BucketId ----------------
@@ -94,6 +91,7 @@ instance A.FromJSON Object
 instance IX.Indexable Object where
   empty = IX.ixSet
     [ IX.ixFun (\x -> [objectId x])
+    , IX.ixFun (\x -> [objectName x])
     , IX.ixFun (\x -> [parentBucketId x])
     , IX.ixFun (\x -> [parentObjectId x])
     ]
