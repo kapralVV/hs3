@@ -4,6 +4,8 @@ import API.Bucket()
 import API.Object()
 import API.FileData()
 import Servers.Bucket()
+import Servers.Object()
+
 
 main :: IO ()
 main = putStrLn "Hello world"

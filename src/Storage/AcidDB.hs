@@ -40,6 +40,7 @@ makeAcidic ''AcidDB [ 'queryBucketIndex
                     , 'queryObjectType
                     , 'queryObjectName
                     , 'queryChildObjects
+                    , 'queryChildObjectsByOid
                     , 'queryChidFiles
                     , 'createFileObject
                     , 'createDirectoryObject
