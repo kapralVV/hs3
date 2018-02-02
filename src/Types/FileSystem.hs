@@ -94,7 +94,6 @@ instance A.FromJSON Object
 instance IX.Indexable Object where
   empty = IX.ixSet
     [ IX.ixFun (\x -> [objectId x])
-    , IX.ixFun (\x -> [objectName x])
     , IX.ixFun (\x -> [parentBucketId x])
     , IX.ixFun (\x -> [parentObjectId x])
     ]
@@ -118,6 +117,23 @@ instance IX.Indexable FileData where
     ]
 
 $(deriveSafeCopy 0 'base ''FileData)
+
+data FileDataJson = FileDataJson { _fileId :: FileId
+                                 , _parentFObjectId :: ObjectId
+                                 , _fileMd5sum :: String
+                                 , _fileSize :: Int64
+                                 , _createTime :: UTCTime
+                                 } deriving (Show, Eq, Ord, Data, Typeable, Generic)
+instance A.ToJSON FileDataJson
+instance A.FromJSON FileDataJson
+
+fileDataToJson :: FileData -> FileDataJson
+fileDataToJson = FileDataJson
+                 <$> fileId
+                 <*> parentFObjectId
+                 <*> fileMd5sum
+                 <*> fileSize
+                 <*> createTime
 
 -- data ObjectMetaData = undefined
 
