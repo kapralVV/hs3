@@ -14,8 +14,5 @@ type FileAPI =
   :<|> "api" :> "file" :> Capture "file Id" FileId :> "data" :> Get '[OctetStream] ByteString
 -- GET /api/file/<ID>/data -> show file data by ID
 
-  :<|> "api" :> "file" :> Capture "object Id" ObjectId :> ReqBody '[OctetStream] ByteString :> Put '[JSON] FileId
--- PUT /api/file/<ObjectId> -> create new file under provided object
-
   :<|> "api" :> "file" :> Capture "file Id" FileId :> Delete '[JSON] ()
 -- DELETE /api/file/<ID> -> remove file

@@ -16,6 +16,9 @@ type BucketAPI =
   :<|> "api" :> "bucket" :> Capture "bucket name" BucketName :> Get '[JSON] Bucket
 -- GET /api/bucket/<NAME> -> show bucket by Name
 
+  :<|> "api" :> "bucket" :> Capture "bucket Id" BucketId :> "children" :> Get '[JSON] [Object]
+-- GET /api/bucket/<BucketID>/children -> show bucket children
+
   :<|> "api" :> "bucket" :> ReqBody '[JSON] BucketName :> Put '[JSON] BucketId
 -- PUT /api/bucket -> create new bucket
 

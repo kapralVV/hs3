@@ -18,13 +18,13 @@ import Data.Acid
 import Data.Acid.Advanced
 import Servant.Server
 import Servant.API
+import Data.Time.Clock (getCurrentTime)
 import Control.Monad.IO.Class (liftIO)
 
 
 serverObject :: AcidState AcidDB -> Server ObjectAPI
 serverObject db =
   ( \oId ->  (query' db $ QueryObjectById oId) >>= statusToHandler )
-  :<|> ( \bId -> (runStatusT . fmap IX.toList . StatusT .  query' db $ QueryChildObjects bId Nothing) >>= statusToHandler )
   :<|> ( \oId -> do
            oType <- query' db $ QueryObjectType oId
            case oType of
@@ -34,4 +34,8 @@ serverObject db =
              Failed e        -> (return $ Failed e) >>= statusToHandler
        )
   :<|> ( \CreateObjectInfo{..} -> (update' db $ CreateObject c_objectName c_bucketId c_parentObjectId c_objectType ) >>= statusToHandler )
+  :<|> ( \oId -> \bytestring ->
+             liftIO getCurrentTime >>= ( \time -> 
+             update' db $ AddFileDataToFile oId time bytestring) >>= statusToHandler
+       )
   :<|> ( \oId -> (liftIO $ deleteObject db oId) >>= statusToHandler )
