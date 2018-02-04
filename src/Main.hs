@@ -5,6 +5,7 @@ import API.Object()
 import API.FileData()
 import Servers.Bucket()
 import Servers.Object()
+import Servers.StatusToHandler()
 
 
 main :: IO ()
