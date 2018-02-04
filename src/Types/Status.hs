@@ -69,9 +69,9 @@ statusToBool :: Status a -> Bool
 statusToBool (Done _)   = True
 statusToBool (Failed _) = False
 
-statusToBool' :: Status a -> Status Bool
-statusToBool' (Done _)   = Done True
-statusToBool' (Failed x) = Failed x
+statusToBool' :: Status Bool -> Bool
+statusToBool' (Done True)   = True
+statusToBool' _             = False
 
 fromStatus :: Status a -> a
 fromStatus (Done a)   = a

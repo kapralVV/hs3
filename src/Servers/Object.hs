@@ -1,12 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Servers.Object where
 
 import API.Object
 import Types.Status
-import Types.FileSystem (fileDataToJson)
+import Types.FileSystem
 import Types.AcidDB
 import Storage.AcidDB
 import Storage.MainStorage
@@ -20,10 +21,16 @@ import Control.Monad.IO.Class (liftIO)
 
 
 serverObject :: AcidState AcidDB -> Server ObjectAPI
-serverObject db = ( \oId ->  query' db $ QueryObjectById oId)
-                  :<|> ( \oId -> runStatusT . fmap IX.toList . StatusT . query' db $ QueryChildObjectsByOid oId)
-                  :<|> ( \bId -> runStatusT . fmap IX.toList . StatusT .  query' db $ QueryChildObjects bId Nothing)
-                  :<|> ( \oId -> runStatusT . fmap (map fileDataToJson . IX.toList) . StatusT . query' db $ QueryChidFiles oId)
-                  -- :<|> ( \oName -> update' db $ CreateObject oName )
-                  --  :<|> ( \object -> update' db $ UpdateObject object)
-                  :<|> ( \oId -> liftIO $ deleteObject db oId)
+serverObject db =
+  ( \oId ->  query' db $ QueryObjectById oId )
+  :<|> ( \bId -> runStatusT . fmap IX.toList . StatusT .  query' db $ QueryChildObjects bId Nothing)
+  :<|> ( \oId -> do
+           oType <- query' db $ QueryObjectType oId
+           case oType of
+             Done Directory -> runStatusT . fmap (ObjectDirChild . IX.toList) . StatusT .  query' db $ QueryChildObjectsByOid oId
+             Done File      -> runStatusT . fmap (ObjectFileChild . map fileDataToJson . IX.toList) . StatusT .  query' db $ QueryChidFiles oId
+             Done (Link nOid) -> runStatusT . fmap ObjectLinkChild . StatusT . query' db $ QueryObjectById nOid
+             Failed e        -> return $ Failed e
+       )
+  :<|> ( \CreateObjectInfo{..} -> update' db $ CreateObject c_objectName c_bucketId c_parentObjectId c_objectType )
+  :<|> ( \oId -> liftIO $ deleteObject db oId)

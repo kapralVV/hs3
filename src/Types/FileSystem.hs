@@ -135,6 +135,26 @@ fileDataToJson = FileDataJson
 
 -- data ObjectMetaData = undefined
 
+---------------- ObjectChildren  --------------
+
+data ObjectChildren = ObjectDirChild  [Object]
+                    | ObjectFileChild [FileDataJson]
+                    | ObjectLinkChild Object
+                    deriving (Show, Eq, Ord, Data, Typeable, Generic)
+instance A.ToJSON ObjectChildren
+instance A.FromJSON ObjectChildren
+
+---------------- CreateObjectInfo ------------_
+
+data CreateObjectInfo = CreateObjectInfo
+                        { c_objectName :: ObjectName
+                        , c_bucketId :: BucketId
+                        , c_parentObjectId :: Maybe ObjectId
+                        , c_objectType :: ObjectType
+                        } deriving (Show, Eq, Ord, Data, Typeable, Generic)
+instance A.ToJSON CreateObjectInfo
+instance A.FromJSON CreateObjectInfo
+
 ---------------- BucketName  ------------------
 
 newtype BucketName = BucketName Text
