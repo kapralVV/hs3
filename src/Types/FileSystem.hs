@@ -15,6 +15,7 @@ import Control.DeepSeq
 
 import Data.SafeCopy
 import qualified Data.Aeson as A
+import Web.HttpApiData
 import qualified Data.IxSet as IX
 import Data.Text
 
@@ -27,7 +28,7 @@ import Control.Applicative
 ---------------- BucketId ----------------
 
 newtype BucketId = BucketId Int
-                 deriving (Show, Eq, Ord, Data, Typeable, Generic, Enum)
+                 deriving (Show, Eq, Ord, Data, Typeable, Generic, Enum, FromHttpApiData)
 instance A.ToJSON BucketId
 instance A.FromJSON BucketId
 
@@ -38,7 +39,7 @@ instance NFData BucketId
 ---------------- ObjectId ----------------
 
 newtype ObjectId = ObjectId Int
-                 deriving (Show, Eq, Ord, Data, Typeable, Generic, Enum)
+                 deriving (Show, Eq, Ord, Data, Typeable, Generic, Enum, FromHttpApiData)
 instance A.ToJSON ObjectId
 instance A.FromJSON ObjectId
 
@@ -49,7 +50,7 @@ instance NFData ObjectId
 ---------------- FileId ------------------
 
 newtype FileId = FileId Int
-               deriving (Show, Eq, Ord, Data, Typeable, Generic, Enum)
+               deriving (Show, Eq, Ord, Data, Typeable, Generic, Enum, FromHttpApiData)
 instance A.ToJSON FileId
 instance A.FromJSON FileId
 
@@ -158,7 +159,7 @@ instance A.FromJSON CreateObjectInfo
 ---------------- BucketName  ------------------
 
 newtype BucketName = BucketName Text
-                 deriving (Show, Eq, Ord, Data, Typeable, Generic)
+                 deriving (Show, Eq, Ord, Data, Typeable, Generic, FromHttpApiData)
 instance A.ToJSON BucketName
 instance A.FromJSON BucketName
 

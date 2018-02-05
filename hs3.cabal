@@ -49,6 +49,9 @@ library
                      , deepseq
                      , servant
                      , servant-server
+                     , http-api-data
+                     , wai
+                     , warp
 -- fixing deps for ghc-7.6 && ghc-7.8
                      , crypto-api == 0.13.2
                      , attoparsec == 0.13.2.0
@@ -75,6 +78,9 @@ executable hs3
                      , deepseq
                      , servant
                      , servant-server
+                     , http-api-data
+                     , wai
+                     , warp
 -- fixing deps for ghc-7.6 && ghc-7.8
                      , crypto-api == 0.13.2
                      , attoparsec == 0.13.2.0
