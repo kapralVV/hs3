@@ -2,14 +2,14 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Servers.Bucket where
+module Server.Bucket where
 
 import API.Bucket
 import Types.Status
 import Types.AcidDB
 import Storage.AcidDB
 import Storage.MainStorage
-import Servers.StatusToHandler
+import Server.StatusToHandler
 
 import qualified Data.IxSet                 as IX
 import Data.Acid

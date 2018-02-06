@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Servers.StatusToHandler where
+module Server.StatusToHandler where
 
 import Types.Status
 import Servant.Server

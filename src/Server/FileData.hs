@@ -1,13 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Servers.FileData where
+module Server.FileData where
 
 import API.FileData
 import Types.Status
 import Types.AcidDB
 import Types.FileSystem
 import Storage.AcidDB
-import Servers.StatusToHandler
+import Server.StatusToHandler
 
 import Data.Acid
 import Data.Acid.Advanced

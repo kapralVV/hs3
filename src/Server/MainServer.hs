@@ -1,12 +1,12 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Servers.MainServer where
+module Server.MainServer where
 
 import API.MainAPI
-import Servers.Bucket
-import Servers.Object
-import Servers.FileData
+import Server.Bucket
+import Server.Object
+import Server.FileData
 import Types.AcidDB
 
 import Data.Acid

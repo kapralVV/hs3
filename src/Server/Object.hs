@@ -3,7 +3,7 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Servers.Object where
+module Server.Object where
 
 import API.Object
 import Types.Status
@@ -11,7 +11,7 @@ import Types.FileSystem
 import Types.AcidDB
 import Storage.AcidDB
 import Storage.MainStorage
-import Servers.StatusToHandler
+import Server.StatusToHandler
 
 import qualified Data.IxSet                 as IX
 import Data.Acid
@@ -33,7 +33,11 @@ serverObject db =
              Done (Link nOid) -> (runStatusT . fmap ObjectLinkChild . StatusT . query' db $ QueryObjectById nOid) >>= statusToHandler
              Failed e        -> (return $ Failed e) >>= statusToHandler
        )
-  :<|> ( \CreateObjectInfo{..} -> (update' db $ CreateObject c_objectName c_bucketId c_parentObjectId c_objectType ) >>= statusToHandler )
+  :<|> ( \CreateObjectInfo{..} -> case c_objectType of
+           File -> (update' db $ CreateFileObject c_objectName c_bucketId c_parentObjectId) >>= statusToHandler
+           Directory -> (update' db $ CreateDirectoryObject c_objectName c_bucketId c_parentObjectId) >>= statusToHandler
+           Link nId -> (update' db $ CreateLinkObject c_objectName c_bucketId c_parentObjectId nId) >>= statusToHandler
+       )
   :<|> ( \oId -> \bytestring ->
              liftIO getCurrentTime >>= ( \time -> 
              update' db $ AddFileDataToFile oId time bytestring) >>= statusToHandler
