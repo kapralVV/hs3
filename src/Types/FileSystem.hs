@@ -28,7 +28,7 @@ import Control.Applicative
 ---------------- BucketId ----------------
 
 newtype BucketId = BucketId Int
-                 deriving (Show, Eq, Ord, Data, Typeable, Generic, Enum, FromHttpApiData)
+                 deriving (Show, Eq, Ord, Data, Typeable, Generic, Enum, FromHttpApiData, ToHttpApiData)
 instance A.ToJSON BucketId
 instance A.FromJSON BucketId
 
@@ -159,7 +159,7 @@ instance A.FromJSON CreateObjectInfo
 ---------------- BucketName  ------------------
 
 newtype BucketName = BucketName Text
-                 deriving (Show, Eq, Ord, Data, Typeable, Generic, FromHttpApiData)
+                 deriving (Show, Eq, Ord, Data, Typeable, Generic, FromHttpApiData, ToHttpApiData)
 instance A.ToJSON BucketName
 instance A.FromJSON BucketName
 
