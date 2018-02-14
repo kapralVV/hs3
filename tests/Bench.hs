@@ -26,13 +26,13 @@ main = do
       perRunEnv (genDirectoryObjId db) $ \ ~(bId,dId) -> do
         name <- generate (arbitrary :: Gen ObjectName)
         update' db $ CreateFileObject name bId dId
-    , bench "DeleteObject" $
-      perRunEnv (genObjectId db) $ \ ~oid -> do
-        deleteObject db oid
     , bench "CreateFileData" $
       perRunEnv (genObjectId db) $ \ ~oId -> do
         time <- generate (arbitrary :: Gen UTCTime)
         bstring <- generate (arbitrary :: Gen ByteString)
         update' db $ AddFileDataToFile oId time bstring
+    , bench "DeleteObject" $
+      perRunEnv (genObjectId db) $ \ ~oid -> do
+        deleteObject db oid
     ]
   liftA2 (>>) createCheckpoint closeAcidState db
