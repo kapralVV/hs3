@@ -39,7 +39,7 @@ instance NFData BucketId
 ---------------- ObjectId ----------------
 
 newtype ObjectId = ObjectId Int
-                 deriving (Show, Eq, Ord, Data, Typeable, Generic, Enum, FromHttpApiData)
+                 deriving (Show, Eq, Ord, Data, Typeable, Generic, Enum, FromHttpApiData, ToHttpApiData)
 instance A.ToJSON ObjectId
 instance A.FromJSON ObjectId
 
