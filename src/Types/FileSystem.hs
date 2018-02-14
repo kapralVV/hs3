@@ -50,7 +50,7 @@ instance NFData ObjectId
 ---------------- FileId ------------------
 
 newtype FileId = FileId Int
-               deriving (Show, Eq, Ord, Data, Typeable, Generic, Enum, FromHttpApiData)
+               deriving (Show, Eq, Ord, Data, Typeable, Generic, Enum, FromHttpApiData, ToHttpApiData)
 instance A.ToJSON FileId
 instance A.FromJSON FileId
 

@@ -6,6 +6,7 @@ module Client.Bucket where
 
 import Types.FileSystem
 import API.Bucket
+
 import Data.Proxy
 import Servant.API
 import Servant.Client
