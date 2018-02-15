@@ -29,5 +29,6 @@ install: cabal sandbox init &&
          cabal sandbox hc-pkg list
 
 script: cabal configure --enable-tests --enable-benchmarks &&
-        travis_wait 40 cabal test --show-details=always &&
+        cabal build lib:hs3 &&
+        cabal test --show-details=always &&
         cabal bench
