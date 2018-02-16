@@ -13,7 +13,6 @@ import Data.Data
 import GHC.Generics
 import Control.DeepSeq
 
-import Data.SafeCopy
 import qualified Data.Aeson as A
 import Web.HttpApiData
 import qualified Data.IxSet as IX
@@ -32,7 +31,6 @@ newtype BucketId = BucketId Int
 instance A.ToJSON BucketId
 instance A.FromJSON BucketId
 
-$(deriveSafeCopy 0 'base ''BucketId)
 
 instance NFData BucketId
 
@@ -43,7 +41,6 @@ newtype ObjectId = ObjectId Int
 instance A.ToJSON ObjectId
 instance A.FromJSON ObjectId
 
-$(deriveSafeCopy 0 'base ''ObjectId)
 
 instance NFData ObjectId
 
@@ -54,7 +51,6 @@ newtype FileId = FileId Int
 instance A.ToJSON FileId
 instance A.FromJSON FileId
 
-$(deriveSafeCopy 0 'base ''FileId)
 
 instance NFData FileId
 
@@ -75,7 +71,6 @@ newtype ObjectName = ObjectName Text
 instance A.ToJSON ObjectName
 instance A.FromJSON ObjectName
 
-$(deriveSafeCopy 0 'base ''ObjectName)
 
 ---------------- Object ------------------
 
@@ -97,8 +92,6 @@ instance IX.Indexable Object where
     , IX.ixFun (\x -> [parentObjectId x])
     ]
 
-$(deriveSafeCopy 0 'base ''Object)
-$(deriveSafeCopy 0 'base ''ObjectType)
 
 ---------------- FileData  ------------------
 
@@ -115,7 +108,6 @@ instance IX.Indexable FileData where
     , IX.ixFun (\x -> [parentFObjectId x])
     ]
 
-$(deriveSafeCopy 0 'base ''FileData)
 
 data FileDataJson = FileDataJson { _fileId :: FileId
                                  , _parentFObjectId :: ObjectId
@@ -163,7 +155,6 @@ newtype BucketName = BucketName Text
 instance A.ToJSON BucketName
 instance A.FromJSON BucketName
 
-$(deriveSafeCopy 0 'base ''BucketName)
 
 ---------------- Bucket  ------------------
 
@@ -180,7 +171,6 @@ instance IX.Indexable Bucket where
     , IX.ixFun (\x -> [bucketName x])
     ]
 
-$(deriveSafeCopy 0 'base ''Bucket)
               
 -- data BucketOptions = undefined
 

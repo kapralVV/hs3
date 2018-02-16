@@ -11,6 +11,24 @@ import Data.IxSet (IxSet, empty)
 
 import Types.FileSystem
 import Types.DbIndexInfo
+import Types.Status
+
+
+$(deriveSafeCopy 0 'base ''BucketId)
+$(deriveSafeCopy 0 'base ''ObjectId)
+$(deriveSafeCopy 0 'base ''FileId)
+$(deriveSafeCopy 0 'base ''ObjectName)
+$(deriveSafeCopy 0 'base ''Object)
+$(deriveSafeCopy 0 'base ''ObjectType)
+$(deriveSafeCopy 0 'base ''FileData)
+$(deriveSafeCopy 0 'base ''BucketName)
+$(deriveSafeCopy 0 'base ''Bucket)
+
+$(deriveSafeCopy 0 'base ''ErrorMessage)
+$(deriveSafeCopy 0 'base ''Status)
+
+$(deriveSafeCopy 0 'base ''DbIndexInfo)
+
 
 data AcidDB = AcidDB { buckets :: (DbIndexInfo BucketId, IxSet Bucket)
                      , objects :: (DbIndexInfo ObjectId, IxSet Object)

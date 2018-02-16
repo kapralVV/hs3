@@ -21,38 +21,26 @@ source-repository head
 
 
 library
-  exposed-modules:   Types.AcidDB
-                   , Types.DbIndexInfo
-                   , Types.FileSystem
+  exposed-modules:   Types.FileSystem
                    , Types.Status
-                   , Storage.AcidDB
-                   , Storage.Bucket
-                   , Storage.DbIndexInfo
-                   , Storage.FileData
-                   , Storage.Generic
-                   , Storage.MainStorage
-                   , Storage.Object
                    , Other.IxSetAeson
-
+                   , API.Bucket
+                   , API.FileData
+                   , API.MainAPI
+                   , API.Object
 
   build-depends:       base >=4.6 && <4.11
                      , bytestring
                      , containers
                      , ixset
                      , text
-                     , safecopy == 0.9.3.3
-                     , acid-state == 0.14.3
                      , aeson
                      , time
                      , pureMD5
                      , mtl
                      , deepseq
                      , servant
-                     , servant-server
                      , http-api-data
--- fixing deps for ghc-7.6 && ghc-7.8
-                     , crypto-api == 0.13.2
-                     , attoparsec == 0.13.2.0
 
   hs-source-dirs:      src
   default-language:    Haskell2010
@@ -69,14 +57,11 @@ executable hs3Server
                      , text
                      , safecopy == 0.9.3.3
                      , acid-state == 0.14.3
-                     , aeson
                      , time
                      , pureMD5
                      , mtl
-                     , deepseq
                      , servant
                      , servant-server
-                     , http-api-data
                      , wai
                      , wai-extra
                      , warp
@@ -84,11 +69,7 @@ executable hs3Server
                      , crypto-api == 0.13.2
                      , attoparsec == 0.13.2.0
 
-  other-modules: API.Bucket
-               , API.FileData
-               , API.MainAPI
-               , API.Object
-               , Server.Bucket
+  other-modules: Server.Bucket
                , Server.FileData
                , Server.MainServer
                , Server.Object
@@ -102,10 +83,8 @@ executable hs3Server
                , Storage.Object
                , Types.AcidDB
                , Types.DbIndexInfo
-               , Types.FileSystem
-               , Types.Status
 
-  hs-source-dirs:      src
+  hs-source-dirs:      server
   default-language:    Haskell2010
   ghc-options:      -Wall -fno-warn-orphans -O2
 
@@ -115,27 +94,21 @@ executable hs3Client
   build-depends:       base >=4.6 && <4.11
                      , hs3
                      , bytestring
-                     , containers
-                     , ixset
-                     , text
-                     , safecopy == 0.9.3.3
-                     , acid-state == 0.14.3
-                     , aeson
-                     , time
-                     , pureMD5
-                     , mtl
-                     , deepseq
-                     , http-api-data
                      , servant
                      , servant-client
 
-  hs-source-dirs:      src
+  other-modules: Client.Bucket
+               , Client.FileData
+               , Client.Object
+
+  hs-source-dirs:      clinet
   default-language:    Haskell2010
-  ghc-options:      -Wall -fno-warn-orphans -O2
+  ghc-options:         -Wall -fno-warn-orphans -O2
 
 Test-Suite hs3Tests
   type:               exitcode-stdio-1.0
   hs-source-dirs:      tests
+                     , server
 
   default-language:    Haskell2010
   ghc-options:      -Wall -fno-warn-orphans -O2
@@ -147,6 +120,15 @@ Test-Suite hs3Tests
                  , Tests.Storage.FileSystemJson
                  , Tests.Storage.GenTestData
                  , Tests.Storage.Object
+                 , Storage.AcidDB
+                 , Storage.Bucket
+                 , Storage.DbIndexInfo
+                 , Storage.FileData
+                 , Storage.Generic
+                 , Storage.MainStorage
+                 , Storage.Object
+                 , Types.AcidDB
+                 , Types.DbIndexInfo
 
   build-depends:       base >=4.6 && <4.11
                      , hs3
@@ -173,6 +155,7 @@ Test-Suite hs3Tests
 Benchmark hs3Bench
   type:                exitcode-stdio-1.0
   hs-source-dirs:      tests
+                     , server
   main-is:             Bench.hs
 
   build-depends:       base          >= 4.0 && < 4.11
@@ -181,10 +164,24 @@ Benchmark hs3Bench
                      , ixset
                      , text
                      , time
+                     , safecopy == 0.9.3.3
                      , acid-state == 0.14.3
+                     , mtl
+                     , pureMD5
                      , bytestring
                      , QuickCheck    >= 2.10 && <2.12
                      , quickcheck-instances
+
+  other-modules: Storage.AcidDB
+               , Storage.Bucket
+               , Storage.DbIndexInfo
+               , Storage.FileData
+               , Storage.Generic
+               , Storage.MainStorage
+               , Storage.Object
+               , Tests.Storage.GenTestData
+               , Types.AcidDB
+               , Types.DbIndexInfo
 
   default-language:    Haskell2010
   ghc-options:        -Wall -rtsopts -fno-warn-orphans

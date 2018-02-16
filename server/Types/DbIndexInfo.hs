@@ -5,7 +5,6 @@
 module Types.DbIndexInfo where
 
 import Data.Data
-import Data.SafeCopy
 import Control.Applicative (liftA2)
 
 
@@ -13,7 +12,6 @@ data DbIndexInfo a = DbIndexInfo { maxIndex :: a
                                  , holes :: [a]
                                  }
                    deriving (Show, Eq, Ord, Data, Typeable)
-$(deriveSafeCopy 0 'base ''DbIndexInfo)
 
 haveHoles :: DbIndexInfo a -> Bool
 haveHoles = not . null . holes

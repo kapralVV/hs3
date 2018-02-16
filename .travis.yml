@@ -30,5 +30,7 @@ install: cabal sandbox init &&
 
 script: cabal configure --enable-tests --enable-benchmarks &&
         travis_wait 30 cabal build lib:hs3 &&
+        cabal build exe:hs3Server &&
+        cabal build exe:hs3Client &&
         cabal test --show-details=always &&
         cabal bench

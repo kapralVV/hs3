@@ -12,7 +12,6 @@ module Types.Status where
 import Data.Aeson
 import GHC.Generics
 import Data.Data
-import Data.SafeCopy
 import Data.Text (Text)
 import Control.Applicative
 import Control.Monad
@@ -30,16 +29,15 @@ data ErrorMessage = ErrorMessage Text
                   deriving (Show,Eq, Generic, Typeable, Data)
 instance ToJSON ErrorMessage
 instance FromJSON ErrorMessage
-$(deriveSafeCopy 0 'base ''ErrorMessage)
 
 instance NFData ErrorMessage
+
 
 data Status a = Done a
               | Failed ErrorMessage
               deriving (Show, Eq, Generic, Typeable, Data)
 instance (ToJSON a) => ToJSON (Status a)
 instance (FromJSON a) => FromJSON (Status a)
-$(deriveSafeCopy 0 'base ''Status)
 
 instance NFData a => NFData (Status a)
 
