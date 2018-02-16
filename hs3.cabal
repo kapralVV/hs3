@@ -101,7 +101,7 @@ executable hs3Client
                , Client.FileData
                , Client.Object
 
-  hs-source-dirs:      clinet
+  hs-source-dirs:      client
   default-language:    Haskell2010
   ghc-options:         -Wall -fno-warn-orphans -O2
 
