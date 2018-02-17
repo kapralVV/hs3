@@ -19,7 +19,7 @@ import Data.Acid.Advanced
 import Servant.Server
 import Servant.API
 import Data.Time.Clock (getCurrentTime)
-import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Trans
 
 
 serverObject :: AcidState AcidDB -> Server ObjectAPI

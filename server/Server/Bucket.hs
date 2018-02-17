@@ -16,7 +16,7 @@ import Data.Acid
 import Data.Acid.Advanced
 import Servant.Server
 import Servant.API
-import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Trans
 
 
 serverBucket :: AcidState AcidDB -> Server BucketAPI
