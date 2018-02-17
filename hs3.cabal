@@ -43,7 +43,7 @@ library
 
   hs-source-dirs:      src
   default-language:    Haskell2010
-  ghc-options:      -Wall -fno-warn-orphans -O2
+  ghc-options:      -Wall -fno-warn-orphans
 
 library hs3Storage
   exposed-modules:   Types.AcidDB
@@ -70,7 +70,7 @@ library hs3Storage
 
   hs-source-dirs:      storage
   default-language:    Haskell2010
-  ghc-options:      -Wall -fno-warn-orphans -O2
+  ghc-options:      -Wall -fno-warn-orphans
 
 executable hs3Server
   main-is:             Server.hs
@@ -102,7 +102,7 @@ executable hs3Server
 
   hs-source-dirs:      server
   default-language:    Haskell2010
-  ghc-options:      -Wall -fno-warn-orphans -O2
+  ghc-options:      -Wall -fno-warn-orphans
 
 executable hs3Client
   main-is:             Client.hs
@@ -119,7 +119,7 @@ executable hs3Client
 
   hs-source-dirs:      client
   default-language:    Haskell2010
-  ghc-options:         -Wall -fno-warn-orphans -O2
+  ghc-options:         -Wall -fno-warn-orphans
 
 Test-Suite hs3Tests
   type:               exitcode-stdio-1.0
