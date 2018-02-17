@@ -29,7 +29,7 @@ install: cabal sandbox init &&
          cabal sandbox hc-pkg list
 
 script: cabal configure --enable-tests --enable-benchmarks &&
-        cabal build lib:hs3 &&
+        travis_wait 20 cabal build lib:hs3 &&
         cabal build lib:hs3Storage &&
         cabal build exe:hs3Server &&
         cabal build exe:hs3Client &&
