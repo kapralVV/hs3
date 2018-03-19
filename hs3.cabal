@@ -113,7 +113,8 @@ executable hs3Client
                      , servant
                      , servant-client
 -- fixing deps issues
-                     , exceptions (>=0.8.3 && <0.9)
+                     , exceptions >=0.8.3 && <0.9
+                     , transformers-compat >=0.5.1 && <0.6
 
   other-modules: Client.Bucket
                , Client.FileData
