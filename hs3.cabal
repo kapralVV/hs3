@@ -112,6 +112,8 @@ executable hs3Client
                      , bytestring
                      , servant
                      , servant-client
+-- fixing deps issues
+                     , exceptions (>=0.8.3 && <0.9)
 
   other-modules: Client.Bucket
                , Client.FileData
