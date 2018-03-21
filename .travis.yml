@@ -22,9 +22,6 @@ matrix:
     env: CACHE_NAME=CACHE8.2
 
 install: cabal sandbox init &&
-         git clone https://github.com/bos/criterion.git &&
-         sed -i '/version/s/0$/1/' criterion/criterion.cabal &&
-         cabal sandbox add-source criterion &&
          cabal install --only-dependencies --enable-tests --enable-benchmarks --disable-documentation --enable-library-stripping &&
          cabal sandbox hc-pkg list
 
